@@ -107,3 +107,11 @@ void ground::add_animal(animal *animal) {
     animals.push_back(animal);
 }
 } // namespace
+
+
+void sheep::move()
+{
+  int x; // sheeps coord x
+  int y; // sheeps coord y
+  
+}

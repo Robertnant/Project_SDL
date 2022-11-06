@@ -48,16 +48,43 @@ public:
 // Insert here:
 // class sheep, derived from animal
 class sheep : public animal {
+  public:
+    sheep(const std::string& file_path, SDL_Surface* window_surface_ptr){};
+
+    virtual ~sheep(){}; // destructor for the sheep
+
+    virtual void draw() override{};
+
+    virtual void move() override{};
+  // implement functions that are purely virtual in base class
+};
+/*
+class wolf : public animal {
   // todo
   // Ctor
   // Dtor
-  // implement functions that are purely virtual in base class
-};
+  public:
+    wolf(const std::string& file_path, SDL_Surface* window_surface_ptr){};
 
+    virtual ~wolf(){}; // destructor for the wolf
+
+    virtual void draw() override
+    {
+      //need to write the code to draw the wolf
+    }
+
+    virtual void move() override
+    {
+      //need to implement the move for the wolf
+      // this is the last thing im going to do since it will take a lot of time
+    }
+};
+*/
 // Insert here:
 // class wolf, derived from animal
 // Use only sheep at first. Once the application works
 // for sheep you can add the wolves
+
 
 // The "ground" on which all the animals live (like the std::vector
 // in the zoo example).
