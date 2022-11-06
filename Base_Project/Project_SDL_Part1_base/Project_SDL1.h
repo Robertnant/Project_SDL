@@ -68,11 +68,11 @@ private:
 
   // Some attribute to store all the wolves and sheep
   // here
-
+  const std::vector<animal*>& animals;
 public:
   ground(SDL_Surface* window_surface_ptr); // todo: Ctor
   ~ground(){}; // todo: Dtor, again for clean up (if necessary)
-  void add_animal(some argument here); // todo: Add an animal
+  void add_animal(animal *animal); // todo: Add an animal
   void update(); // todo: "refresh the screen": Move animals and draw them
   // Possibly other methods, depends on your implementation
 };
@@ -86,6 +86,7 @@ private:
   SDL_Event window_event_;
 
   // Other attributes here, for example an instance of ground
+  ground* ground_ptr_;
 
 public:
   application(unsigned n_sheep, unsigned n_wolf); // Ctor
