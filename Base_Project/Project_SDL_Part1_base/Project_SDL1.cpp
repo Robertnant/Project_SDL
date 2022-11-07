@@ -108,10 +108,23 @@ void ground::add_animal(animal *animal) {
 }
 } // namespace
 
+//constructor for sheep
+sheep::sheep(const std::string& file_path, SDL_Surface* window_surface_ptr)
+{
+  file_path_ = file_path;
+  window_surface_ptr_ = window_surface_ptr;
+
+}
 
 void sheep::move()
 {
-  int x; // sheeps coord x
-  int y; // sheeps coord y
-  
+
+  //init rect (the function that allows me move)
+  SDL_Rect rect;
+  rect.w = frame_width;
+  rect.h = frame_height;
+  rect.y = 0; // sheeps coord x
+  rect.x = 0; // sheeps coord y
+  SDL_RenderDrawRect()
+
 }
