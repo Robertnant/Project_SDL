@@ -120,11 +120,11 @@ void sheep::move()
 {
 
   //init rect (the function that allows me move)
-  SDL_Rect rect;
-  rect.w = frame_width;
-  rect.h = frame_height;
-  rect.y = 0; // sheeps coord x
-  rect.x = 0; // sheeps coord y
+  SDL_Rect sheep1;
+  sheep1.w = frame_width;
+  sheep1.h = frame_height;
+  sheep1.y = 0; // sheeps coord x
+  sheep1.x = 0; // sheeps coord y
   SDL_RenderDrawRect()
 
 }
