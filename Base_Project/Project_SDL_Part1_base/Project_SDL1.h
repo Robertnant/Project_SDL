@@ -30,6 +30,7 @@ private:
   SDL_Surface* image_ptr_; // The texture of the sheep (the loaded image), use
                            // load_surface_for
   // todo: Attribute(s) to define its position
+  SDL_Rect* position_ptr_; // Rectangle containing position of animal
 public:
   animal(const std::string& file_path, SDL_Surface* window_surface_ptr){};
   // todo: The constructor has to load the sdl_surface that corresponds to the
@@ -53,8 +54,6 @@ class sheep : public animal {
 
     virtual ~sheep(){}; // destructor for the sheep
 
-    virtual void draw() override{};
-
     virtual void move() override{};
   // implement functions that are purely virtual in base class
 };
@@ -67,11 +66,6 @@ class wolf : public animal {
     wolf(const std::string& file_path, SDL_Surface* window_surface_ptr){};
 
     virtual ~wolf(){}; // destructor for the wolf
-
-    virtual void draw() override
-    {
-      //need to write the code to draw the wolf
-    }
 
     virtual void move() override
     {

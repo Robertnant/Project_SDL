@@ -108,23 +108,21 @@ void ground::add_animal(animal *animal) {
 }
 } // namespace
 
+// Draw function.
+void animal::draw() {
+    // Blit onto the screen surface
+    if (SDL_BlitScaled(image_ptr_, NULL, window_surface_ptr_, position_ptr_) < 0)
+        throw std::runtime_error("BlitSurface error: %s\n", std::string(SDL_GetError()));
+
+    // Update the screen
+    SDL_UpdateWindow(window_surface_ptr_);
+}
+
 //constructor for sheep
 sheep::sheep(const std::string& file_path, SDL_Surface* window_surface_ptr)
 {
   file_path_ = file_path;
   window_surface_ptr_ = window_surface_ptr;
-}
-
-void sheep::draw()
-{
-  //init rect (the function that allows me move)
-  SDL_Rect sheep1;
-  sheep1.w = frame_width;
-  sheep1.h = frame_height;
-  sheep1.y = 0; // sheeps coord x
-  sheep1.x = 0; // sheeps coord y
-  SDL_RenderDrawRect()
-
 }
 
 void sheep::move()
