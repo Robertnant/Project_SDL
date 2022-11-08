@@ -127,5 +127,19 @@ sheep::sheep(const std::string& file_path, SDL_Surface* window_surface_ptr)
 
 void sheep::move()
 {
-  x += 1;
+  // This is for the first movement
+  int random = rand(3);
+  switch(random)
+  {
+    case 0:
+      position_ptr_->x += 1;
+    case 1:
+      position_ptr_->y += 1;
+    case 2:
+      position_ptr_->x -= 1;
+    case 3:
+      position_ptr_->y -= 1;
+  }
+
+  draw();
 }
