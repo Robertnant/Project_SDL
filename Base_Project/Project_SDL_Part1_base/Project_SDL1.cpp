@@ -113,12 +113,10 @@ sheep::sheep(const std::string& file_path, SDL_Surface* window_surface_ptr)
 {
   file_path_ = file_path;
   window_surface_ptr_ = window_surface_ptr;
-
 }
 
-void sheep::move()
+void sheep::draw()
 {
-
   //init rect (the function that allows me move)
   SDL_Rect sheep1;
   sheep1.w = frame_width;
@@ -127,4 +125,9 @@ void sheep::move()
   sheep1.x = 0; // sheeps coord y
   SDL_RenderDrawRect()
 
+}
+
+void sheep::move()
+{
+  x += 1;
 }
