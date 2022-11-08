@@ -20,7 +20,12 @@ constexpr unsigned frame_height = 900; // Height of window in pixel
 // of the screen
 constexpr unsigned frame_boundary = 100;
 
-// Helper function to initialize SDL
+// Path to sheep and wolf texture
+// todo(robertnant): check if path should be absolute or relative
+const std::string sheep_texture_path = "media/sheep.png";
+const std::string wolf_texture_path = "media/wolf.png";
+
+        // Helper function to initialize SDL
 void init();
 
 class animal {
@@ -30,6 +35,7 @@ private:
   SDL_Surface* image_ptr_; // The texture of the sheep (the loaded image), use
                            // load_surface_for
   // todo: Attribute(s) to define its position
+protected:
   SDL_Rect* position_ptr_; // Rectangle containing position of animal
 public:
   animal(const std::string& file_path, SDL_Surface* window_surface_ptr){};
@@ -38,11 +44,11 @@ public:
   ~animal(){}; // todo: Use the destructor to release memory and "clean up
                // behind you"
 
-  void draw(){}; // todo: Draw the animal on the screen <-> window_surface_ptr.
+  void draw(); // todo: Draw the animal on the screen <-> window_surface_ptr.
                  // Note that this function is not virtual, it does not depend
                  // on the static type of the instance
 
-  virtual void move(){} = 0; // todo: Animals move around, but in a different
+  virtual void move() = 0; // todo: Animals move around, but in a different
                              // fashion depending on which type of animal
 };
 
@@ -50,11 +56,11 @@ public:
 // class sheep, derived from animal
 class sheep : public animal {
   public:
-    sheep(const std::string& file_path, SDL_Surface* window_surface_ptr){};
+    sheep(SDL_Surface* window_surface_ptr):animal(sheep_texture_path, window_surface_ptr){};
 
     virtual ~sheep(){}; // destructor for the sheep
 
-    virtual void move() override{};
+    virtual void move() override;
   // implement functions that are purely virtual in base class
 };
 /*
@@ -89,10 +95,10 @@ private:
 
   // Some attribute to store all the wolves and sheep
   // here
-  const std::vector<animal*>& animals;
+  std::vector<animal*> animals;
 public:
   ground(SDL_Surface* window_surface_ptr); // todo: Ctor
-  ~ground(){}; // todo: Dtor, again for clean up (if necessary)
+  ~ground(); // todo: Dtor, again for clean up (if necessary)
   void add_animal(animal *animal); // todo: Add an animal
   void update(); // todo: "refresh the screen": Move animals and draw them
   // Possibly other methods, depends on your implementation
