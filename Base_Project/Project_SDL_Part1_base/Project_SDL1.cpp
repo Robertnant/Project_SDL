@@ -60,13 +60,18 @@ application::application(unsigned int n_sheep, unsigned int n_wolf) {
                                    frame_width, frame_height, 0);
     window_surface_ptr_ = SDL_GetWindowSurface(window_ptr_);
 
+    // todo: Use correct color.
+    SDL_FillRect(window_surface_ptr_, NULL, SDL_MapRGB(window_surface_ptr_->format, 255, 255, 255));
+
     // Create ground with animals.
     ground_ptr_ = new ground(window_surface_ptr_);
+    std::cout << "Created ground for application.\n";
 
     for (unsigned int i = 0; i < n_sheep; i++) {
-        // Missing arguments for sheep
         ground_ptr_->add_animal(new sheep(window_surface_ptr_));
     }
+
+    std::cout << "Added animals.\n";
 
     /*
     for (unsigned int i = 0; i < n_wolf; i++) {
@@ -111,6 +116,13 @@ ground::~ground() {
 
 void ground::add_animal(animal *animal) {
     animals.push_back(animal);
+}
+
+
+// Constructor for animal.
+animal::animal(const std::string &file_path, SDL_Surface* window_surface_ptr) {
+    std::cout << file_path + "\n";
+    window_surface_ptr_ = load_surface_for(file_path, window_surface_ptr);
 }
 
 // Draw function.

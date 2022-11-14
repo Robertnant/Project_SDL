@@ -22,8 +22,8 @@ constexpr unsigned frame_boundary = 100;
 
 // Path to sheep and wolf texture
 // todo(robertnant): check if path should be absolute or relative
-const std::string sheep_texture_path = "media/sheep.png";
-const std::string wolf_texture_path = "media/wolf.png";
+const std::string sheep_texture_path = "../media/sheep.png";
+const std::string wolf_texture_path = "../media/wolf.png";
 
         // Helper function to initialize SDL
 void init();
@@ -38,7 +38,7 @@ private:
 protected:
   SDL_Rect* position_ptr_; // Rectangle containing position of animal
 public:
-  animal(const std::string& file_path, SDL_Surface* window_surface_ptr){};
+  animal(const std::string& file_path, SDL_Surface* window_surface_ptr);
   // todo: The constructor has to load the sdl_surface that corresponds to the
   // texture
   ~animal(){}; // todo: Use the destructor to release memory and "clean up
@@ -97,7 +97,7 @@ private:
   // here
   std::vector<animal*> animals;
 public:
-  ground(SDL_Surface* window_surface_ptr); // todo: Ctor
+    ground(SDL_Surface* window_surface_ptr); // todo: Ctor
   ~ground(); // todo: Dtor, again for clean up (if necessary)
   void add_animal(animal *animal); // todo: Add an animal
   void update(); // todo: "refresh the screen": Move animals and draw them
