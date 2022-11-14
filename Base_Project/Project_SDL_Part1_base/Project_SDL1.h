@@ -16,8 +16,10 @@ constexpr double frame_rate = 60.0; // refresh rate
 constexpr double frame_time = 1. / frame_rate;
 constexpr unsigned frame_width = 1400; // Width of window in pixel
 constexpr unsigned frame_height = 900; // Height of window in pixel
-constexpr unsigned animal_width = 50; // Width of animals in pixel
-constexpr unsigned animal_height = 50; // Height of animals in pixel
+constexpr unsigned sheep_width = 50; // Width of sheep in pixel
+constexpr unsigned sheep_height = 50; // Height of sheep in pixel
+constexpr unsigned wolf_width = 50; // Width of wolf in pixel
+constexpr unsigned wolf_height = 25; // Height of wolf in pixel
 
 // Minimal distance of animals to the border
 // of the screen
@@ -60,7 +62,8 @@ public:
 class sheep : public animal {
   public:
     sheep(SDL_Surface* window_surface_ptr):animal(sheep_texture_path, window_surface_ptr){
-        // move();
+        position_ptr_->w = sheep_width;
+        position_ptr_->h = sheep_height;
     };
 
     virtual ~sheep(){}; // destructor for the sheep
@@ -68,23 +71,20 @@ class sheep : public animal {
     virtual void move() override;
   // implement functions that are purely virtual in base class
 };
-/*
+
 class wolf : public animal {
-  // todo
-  // Ctor
   // Dtor
   public:
-    wolf(const std::string& file_path, SDL_Surface* window_surface_ptr){};
+    wolf(SDL_Surface* window_surface_ptr):animal(wolf_texture_path, window_surface_ptr){
+        position_ptr_->w = wolf_width;
+        position_ptr_->h = wolf_height;
+    };
 
     virtual ~wolf(){}; // destructor for the wolf
 
-    virtual void move() override
-    {
-      //need to implement the move for the wolf
-      // this is the last thing im going to do since it will take a lot of time
-    }
+    virtual void move() override;
 };
-*/
+
 // Insert here:
 // class wolf, derived from animal
 // Use only sheep at first. Once the application works
@@ -100,8 +100,9 @@ private:
 
   // Some attribute to store all the wolves and sheep
   // here
-  std::vector<animal*> animals;
 public:
+    // todo: move to private and create getter
+    std::vector<animal*> animals;
     ground(SDL_Surface* window_surface_ptr); // todo: Ctor
   ~ground(); // todo: Dtor, again for clean up (if necessary)
   void add_animal(animal *animal); // todo: Add an animal

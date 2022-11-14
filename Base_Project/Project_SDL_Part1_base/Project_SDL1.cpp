@@ -71,14 +71,11 @@ application::application(unsigned int n_sheep, unsigned int n_wolf) {
         ground_ptr_->add_animal(new sheep(window_surface_ptr_));
     }
 
-    std::cout << "Added animals.\n";
-
-    /*
     for (unsigned int i = 0; i < n_wolf; i++) {
-        // Missing arguments for wolf
-        ground_ptr_->add_animal(new wolf())
+        ground_ptr_->add_animal(new wolf(window_surface_ptr_));
     }
-    */
+
+    std::cout << "Added animals.\n";
 }
 
 // Destructor for application.
@@ -91,8 +88,12 @@ application::~application() {
 // todo: finish
 int application::loop(unsigned period) {
     while (period) {
+        for (animal *animal : ground_ptr_->animals) {
+            animal->move();
+        }
         SDL_UpdateWindowSurface(window_ptr_);
         SDL_Delay(1000 * frame_time);
+        SDL_FillRect(window_surface_ptr_, NULL, SDL_MapRGB(window_surface_ptr_->format, 255, 255, 255));
         period--;
     }
 
@@ -128,16 +129,7 @@ animal::animal(const std::string &file_path, SDL_Surface* window_surface_ptr) {
     // Set initial (random) position and start animal movement.
     position_ptr_ = new SDL_Rect();
     position_ptr_->x = frame_boundary + (rand() % frame_width);
-    std::cout << position_ptr_->x << "\n";
-
     position_ptr_->y = frame_boundary + (rand() % frame_height);
-    std::cout << position_ptr_->y << "\n";
-
-    position_ptr_->w = animal_width;
-    std::cout << position_ptr_->w << "\n";
-
-    position_ptr_->h = animal_height;
-    std::cout << position_ptr_->h << "\n";
 
     draw();
 }
@@ -170,4 +162,23 @@ void sheep::move()
   }
 
   draw();
+}
+
+void wolf::move()
+{
+    // This is for the first movement
+    int random = rand() % 3;
+    switch(random)
+    {
+        case 0:
+            position_ptr_->x += 1;
+        case 1:
+            position_ptr_->y += 1;
+        case 2:
+            position_ptr_->x -= 1;
+        case 3:
+            position_ptr_->y -= 1;
+    }
+
+    draw();
 }
