@@ -122,12 +122,33 @@ void ground::add_animal(animal *animal) {
 // Constructor for animal.
 animal::animal(const std::string &file_path, SDL_Surface* window_surface_ptr) {
     std::cout << file_path + "\n";
-    window_surface_ptr_ = load_surface_for(file_path, window_surface_ptr);
+    image_ptr_ = load_surface_for(file_path, window_surface_ptr);
+    window_surface_ptr_ = window_surface_ptr;
+
+    // Set initial (random) position and start animal movement.
+    position_ptr_ = new SDL_Rect();
+    position_ptr_->x = frame_boundary + (rand() % frame_width);
+    std::cout << position_ptr_->x << "\n";
+
+    position_ptr_->y = frame_boundary + (rand() % frame_height);
+    std::cout << position_ptr_->y << "\n";
+
+    position_ptr_->w = animal_width;
+    std::cout << position_ptr_->w << "\n";
+
+    position_ptr_->h = animal_height;
+    std::cout << position_ptr_->h << "\n";
+
+    draw();
 }
 
 // Draw function.
 void animal::draw() {
     // Blit onto the screen surface
+    if (!image_ptr_)
+        std::cout << "Null image surface passed\n";
+    if (!window_surface_ptr_)
+        std::cout << "Null window surface passed\n";
     if (SDL_BlitScaled(image_ptr_, NULL, window_surface_ptr_, position_ptr_) < 0)
         throw std::runtime_error("BlitSurface error: " + std::string(SDL_GetError()) + "\n");
 }

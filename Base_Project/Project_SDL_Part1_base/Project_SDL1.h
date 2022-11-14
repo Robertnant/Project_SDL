@@ -16,6 +16,9 @@ constexpr double frame_rate = 60.0; // refresh rate
 constexpr double frame_time = 1. / frame_rate;
 constexpr unsigned frame_width = 1400; // Width of window in pixel
 constexpr unsigned frame_height = 900; // Height of window in pixel
+constexpr unsigned animal_width = 50; // Width of animals in pixel
+constexpr unsigned animal_height = 50; // Height of animals in pixel
+
 // Minimal distance of animals to the border
 // of the screen
 constexpr unsigned frame_boundary = 100;
@@ -56,7 +59,9 @@ public:
 // class sheep, derived from animal
 class sheep : public animal {
   public:
-    sheep(SDL_Surface* window_surface_ptr):animal(sheep_texture_path, window_surface_ptr){};
+    sheep(SDL_Surface* window_surface_ptr):animal(sheep_texture_path, window_surface_ptr){
+        // move();
+    };
 
     virtual ~sheep(){}; // destructor for the sheep
 
