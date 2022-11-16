@@ -51,6 +51,17 @@ SDL_Surface* load_surface_for(const std::string& path,
 
     return converted_surface;
 }
+
+// Function to clamp position of animal.
+int clamp(int position, int max_position) {
+    if (position < frame_boundary)
+        return frame_boundary;
+    if (position > (max_position - frame_boundary))
+        return max_position - frame_boundary;
+
+    return position;
+}
+
 } // namespace
 
 // Constructor for application.
@@ -128,8 +139,8 @@ animal::animal(const std::string &file_path, SDL_Surface* window_surface_ptr) {
 
     // Set initial (random) position and start animal movement.
     position_ptr_ = new SDL_Rect();
-    position_ptr_->x = frame_boundary + (rand() % frame_width);
-    position_ptr_->y = frame_boundary + (rand() % frame_height);
+    position_ptr_->x = clamp(frame_boundary + (rand() % frame_width), frame_width);
+    position_ptr_->y = clamp(frame_boundary + (rand() % frame_height), frame_height);
 
     draw();
 }
@@ -147,26 +158,24 @@ void animal::draw() {
 
 void sheep::move()
 {
-  // This is for the first movement
-  int random = rand() % 3;
-  switch(random)
-  {
-    case 0:
-      position_ptr_->x += 1;
-    case 1:
-      position_ptr_->y += 1;
-    case 2:
-      position_ptr_->x -= 1;
-    case 3:
-      position_ptr_->y -= 1;
-  }
+    // Manage step.
+    if (position_ptr_->x == frame_boundary || position_ptr_->x == frame_width - frame_boundary) {
+        step_x *= -1;
+    }
+    if (position_ptr_->y == frame_boundary || position_ptr_->y == frame_height - frame_boundary) {
+        step_y *= -1;
+    }
+
+    // Update position.
+    position_ptr_->x = clamp(position_ptr_->x + step_x, frame_width);
+    position_ptr_->y = clamp(position_ptr_->y + step_y, frame_height);
 
   draw();
 }
 
 void wolf::move()
 {
-    // This is for the first movement
+    //srand(time(NULL));
     int random = rand() % 3;
     switch(random)
     {

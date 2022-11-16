@@ -20,6 +20,7 @@ constexpr unsigned sheep_width = 50; // Width of sheep in pixel
 constexpr unsigned sheep_height = 50; // Height of sheep in pixel
 constexpr unsigned wolf_width = 50; // Width of wolf in pixel
 constexpr unsigned wolf_height = 25; // Height of wolf in pixel
+// unsigned seed_iterator = 0; // Seed passed and incremented to time function for random number generation
 
 // Minimal distance of animals to the border
 // of the screen
@@ -42,6 +43,8 @@ private:
   // todo: Attribute(s) to define its position
 protected:
   SDL_Rect* position_ptr_; // Rectangle containing position of animal
+  int step_x = 0;
+  int step_y = 0;
 public:
   animal(const std::string& file_path, SDL_Surface* window_surface_ptr);
   // todo: The constructor has to load the sdl_surface that corresponds to the
@@ -64,6 +67,16 @@ class sheep : public animal {
     sheep(SDL_Surface* window_surface_ptr):animal(sheep_texture_path, window_surface_ptr){
         position_ptr_->w = sheep_width;
         position_ptr_->h = sheep_height;
+
+        // Randomly select movement direction.
+        srand(time(0));
+
+        while (step_x == 0 && step_y == 0) {
+            step_x = -1 + rand() % 3;
+            step_y = -1 + rand() % 3;
+        }
+
+        std::cout << "x" << position_ptr_->x << " y" << position_ptr_->y << "n";
     };
 
     virtual ~sheep(){}; // destructor for the sheep
