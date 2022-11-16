@@ -63,7 +63,7 @@ public:
 // class sheep, derived from animal
 class sheep : public animal {
   public:
-    sheep(SDL_Surface* window_surface_ptr, int seed):animal(sheep_texture_path, window_surface_ptr){
+    sheep(SDL_Surface* window_surface_ptr, unsigned seed):animal(sheep_texture_path, window_surface_ptr){
         position_ptr_->w = sheep_width;
         position_ptr_->h = sheep_height;
 
@@ -75,7 +75,6 @@ class sheep : public animal {
             step_y = -1 + rand() % 3;
         }
 
-        std::cout << "x" << position_ptr_->x << " y" << position_ptr_->y << "n";
     };
 
     virtual ~sheep(){}; // destructor for the sheep
@@ -85,11 +84,14 @@ class sheep : public animal {
 };
 
 class wolf : public animal {
-  // Dtor
+private:
+    unsigned seed_;
+    // Dtor
   public:
-    wolf(SDL_Surface* window_surface_ptr):animal(wolf_texture_path, window_surface_ptr){
+    wolf(SDL_Surface* window_surface_ptr, unsigned seed):animal(wolf_texture_path, window_surface_ptr){
         position_ptr_->w = wolf_width;
         position_ptr_->h = wolf_height;
+        seed_ = seed;
     };
 
     virtual ~wolf(){}; // destructor for the wolf
@@ -132,7 +134,7 @@ private:
 
   // Other attributes here, for example an instance of ground
   ground* ground_ptr_;
-  int seed_itr = 0;
+  unsigned seed_itr = 0;
 
 public:
   application(unsigned n_sheep, unsigned n_wolf); // Ctor
