@@ -20,7 +20,6 @@ constexpr unsigned sheep_width = 50; // Width of sheep in pixel
 constexpr unsigned sheep_height = 50; // Height of sheep in pixel
 constexpr unsigned wolf_width = 50; // Width of wolf in pixel
 constexpr unsigned wolf_height = 25; // Height of wolf in pixel
-// unsigned seed_iterator = 0; // Seed passed and incremented to time function for random number generation
 
 // Minimal distance of animals to the border
 // of the screen
@@ -64,12 +63,12 @@ public:
 // class sheep, derived from animal
 class sheep : public animal {
   public:
-    sheep(SDL_Surface* window_surface_ptr):animal(sheep_texture_path, window_surface_ptr){
+    sheep(SDL_Surface* window_surface_ptr, int seed):animal(sheep_texture_path, window_surface_ptr){
         position_ptr_->w = sheep_width;
         position_ptr_->h = sheep_height;
 
         // Randomly select movement direction.
-        srand(time(0));
+        srand(time(0) + seed);
 
         while (step_x == 0 && step_y == 0) {
             step_x = -1 + rand() % 3;
@@ -133,6 +132,7 @@ private:
 
   // Other attributes here, for example an instance of ground
   ground* ground_ptr_;
+  int seed_itr = 0;
 
 public:
   application(unsigned n_sheep, unsigned n_wolf); // Ctor

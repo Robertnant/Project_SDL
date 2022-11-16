@@ -79,7 +79,7 @@ application::application(unsigned int n_sheep, unsigned int n_wolf) {
     std::cout << "Created ground for application.\n";
 
     for (unsigned int i = 0; i < n_sheep; i++) {
-        ground_ptr_->add_animal(new sheep(window_surface_ptr_));
+        ground_ptr_->add_animal(new sheep(window_surface_ptr_, seed_itr++));
     }
 
     for (unsigned int i = 0; i < n_wolf; i++) {
