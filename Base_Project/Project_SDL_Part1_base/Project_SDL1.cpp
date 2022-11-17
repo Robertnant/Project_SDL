@@ -93,8 +93,9 @@ application::application(unsigned int n_sheep, unsigned int n_wolf) {
 
 // Destructor for application.
 application::~application() {
+    delete ground_ptr_;
     // Close and destroy the surface and window.
-    SDL_FreeSurface(window_surface_ptr_);
+    // SDL_FreeSurface(window_surface_ptr_);
     SDL_DestroyWindow(window_ptr_);
 }
 
@@ -121,7 +122,10 @@ ground::ground(SDL_Surface* window_surface_ptr) {
 // Destructor for ground.
 ground::~ground() {
     // Free all animals in vector.
-    while (!animals.empty()) {
+    int i = 0;
+    while (!animals.empty())
+    {
+        std::cout << "deletani" << i++ << "\n";
         animal* current_animal = animals.back();
         delete current_animal;
         animals.pop_back();

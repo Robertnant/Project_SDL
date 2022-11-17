@@ -48,10 +48,14 @@ public:
   animal(const std::string& file_path, SDL_Surface* window_surface_ptr);
   // todo: The constructor has to load the sdl_surface that corresponds to the
   // texture
-  ~animal(){}; // todo: Use the destructor to release memory and "clean up
+  virtual ~animal(){
+      std::cout << "hello\n";
+      SDL_FreeSurface(image_ptr_);
+      // delete position_ptr_;
+  }; // todo: Use the destructor to release memory and "clean up
                // behind you"
 
-  void draw(); // todo: Draw the animal on the screen <-> window_surface_ptr.
+  void draw(); // todo: Draw the animal on the scree<n <-> window_surface_ptr.
                  // Note that this function is not virtual, it does not depend
                  // on the static type of the instance
 
@@ -77,7 +81,7 @@ class sheep : public animal {
 
     };
 
-    virtual ~sheep(){}; // destructor for the sheep
+    virtual ~sheep(){};// destructor for the sheep
 
     virtual void move() override;
   // implement functions that are purely virtual in base class
@@ -138,7 +142,7 @@ private:
 
 public:
   application(unsigned n_sheep, unsigned n_wolf); // Ctor
-  ~application();                                 // dtor
+    ~application();                                 // dtor
 
   int loop(unsigned period); // main loop of the application.
                              // this ensures that the screen is updated
