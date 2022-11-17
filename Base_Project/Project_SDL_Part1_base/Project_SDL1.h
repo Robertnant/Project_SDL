@@ -51,7 +51,7 @@ public:
   virtual ~animal(){
       std::cout << "hello\n";
       SDL_FreeSurface(image_ptr_);
-      // delete position_ptr_;
+      delete position_ptr_;
   }; // todo: Use the destructor to release memory and "clean up
                // behind you"
 
