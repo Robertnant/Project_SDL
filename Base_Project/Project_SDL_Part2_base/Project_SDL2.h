@@ -29,24 +29,34 @@ constexpr unsigned frame_boundary = 100;
 // Path to sheep and wolf texture
 const std::string sheep_texture_path = "../../media/sheep.png";
 const std::string wolf_texture_path = "../../media/wolf.png";
-const std::string shepherd_dog_texture_path = "../../media/sheperd_dog.png";
-const std::string shepherd_texture_path = "../../media/sheperd.png";
+const std::string shepherd_dog_texture_path = "../../media/shepherd_dog.png";
+const std::string shepherd_texture_path = "../../media/shepherd.png";
 
         // Helper function to initialize SDL
 void init();
 
 class interact_object {
-protected:
+protected: // todo: maybe make properties private
     std::set<std::string> properties;
 public:
-    interact_object();  // constructor (todo: should initiate properties with "alive" property)
+    // All interact objects are supposed as alive
+    interact_object() {
+        properties.insert("alive");
+    };
     virtual ~interact_object(){}; // destructor
     virtual void interact(interact_object *other_object); // todo: handle interaction between characters; could maybe take another interact object
 
     // "get" and "add" functions for interact object properties
-    void add_property(std::string);
-    void mark_dead();
-    bool is_alive();
+    void add_property(std::string property) {
+        properties.insert(property);
+    };
+    void mark_dead() {
+        properties.erase("alive");
+        properties.insert("dead");
+    };
+    bool is_alive() {
+        return properties.find("alive") != properties.end();
+    };
 };
 
 class rendered_object : public interact_object {
@@ -59,8 +69,8 @@ private: // todo: elements below should maybe not be private
     SDL_Surface* image_ptr_; // The texture of the sheep (the loaded image), use
     // load_surface_for
 public:
-    // todo: create a constructor
-    void draw(); // todo: Draw the animal on the scree<n <-> window_surface_ptr.
+    rendered_object(const std::string &file_path, SDL_Surface* window_surface_ptr, int object_width, int object_height);
+    void draw();
     // Note that this function is not virtual, it does not depend
     // on the static type of the instance
     virtual ~rendered_object(){
@@ -70,14 +80,20 @@ public:
 };
 
 class moving_object : public rendered_object {
-protected:
-    int velocity_x = 0; // maybe the same as step_x and step_y that were used before
-    int velocity_y = 0;
+private:
+    int velocity_x_ = 0; // maybe the same as step_x and step_y that were used before
+    int velocity_y_ = 0;
 public:
+    moving_object(const std::string &file_path,
+                  SDL_Surface* window_surface_ptr, int object_width, int object_height): rendered_object(
+                          sheep_texture_path, window_surface_ptr, object_width, object_height){}; // todo: maybe add an initial velocity ? (not that necessary for now maybe)
     virtual ~moving_object(){};
-    virtual void move() = 0; // todo: Animals move around, but in a different
-    // fashion depending on which type of animal
-    void step();
+    virtual void move() = 0;
+    // fashion depending on which type of animal. Move calls step function to modify velocity
+    void step(int step_x, int step_y) {
+        velocity_x_ += step_x;
+        velocity_y_ += step_y;
+    };
 };
 
 class playable_character {
@@ -88,78 +104,85 @@ class shepherd {
 
 };
 
-class animal {
+class animal : public moving_object {
 public:
-  animal(const std::string& file_path, SDL_Surface* window_surface_ptr);
-  // todo: The constructor has to load the sdl_surface that corresponds to the
-  // texture
-  virtual ~animal(){
-  }; // todo: Use the destructor to release memory and "clean up
-               // behind you"
+  animal(const std::string &file_path, SDL_Surface* window_surface_ptr, int object_width,
+         int object_height): moving_object(sheep_texture_path, window_surface_ptr,
+                                           object_width, object_height){};
+  virtual ~animal(){};
 };
 
 // Insert here:
 // class sheep, derived from animal
 class sheep : public animal {
   public:
-    sheep(SDL_Surface* window_surface_ptr, unsigned seed):animal(sheep_texture_path, window_surface_ptr){
-        position_ptr_->w = sheep_width;
-        position_ptr_->h = sheep_height;
+    sheep(SDL_Surface* window_surface_ptr, unsigned seed):animal(
+            sheep_texture_path, window_surface_ptr, sheep_width, sheep_height){
 
         // Randomly select movement direction.
         srand(time(0) + seed);
 
+        int step_x = 0;
+        int step_y = 0;
         while (step_x == 0 && step_y == 0) {
             step_x = -1 + rand() % 3;
             step_y = -1 + rand() % 3;
         }
 
+        step(step_x, step_y);
     };
 
     virtual ~sheep(){};// destructor for the sheep
 
-    virtual void move() override;
+    virtual void move() override;  // todo: finish implementation
+    virtual void interact(interact_object *other_object); // todo: implement
   // implement functions that are purely virtual in base class
 };
 
 class wolf : public animal {
 private:
     unsigned seed_;
-    // Dtor
   public:
-    wolf(SDL_Surface* window_surface_ptr, unsigned seed):animal(wolf_texture_path, window_surface_ptr){
-        position_ptr_->w = wolf_width;
-        position_ptr_->h = wolf_height;
+    wolf(SDL_Surface* window_surface_ptr, unsigned seed):animal(
+            wolf_texture_path, window_surface_ptr, wolf_width, wolf_height){
         seed_ = seed;
     };
 
     virtual ~wolf(){}; // destructor for the wolf
 
-    virtual void move() override;
+    virtual void move() override;  // todo: finish implementation
+    virtual void interact(interact_object *other_object) override; // todo: implement
 };
 
-// Insert here:
-// class wolf, derived from animal
-// Use only sheep at first. Once the application works
-// for sheep you can add the wolves
+class shepherd_dog : public animal {
+private:
+    unsigned seed_;
+public:
+    shepherd_dog(SDL_Surface* window_surface_ptr, unsigned seed):animal(
+            wolf_texture_path, window_surface_ptr, wolf_width, wolf_height){
+        seed_ = seed;
+    };
 
+    virtual ~shepherd_dog(){}; // destructor for the wolf
 
-// The "ground" on which all the animals live (like the std::vector
+    virtual void move() override;  // todo: implement
+    virtual void interact(interact_object *other_object) override; // todo: implement
+};
+
+// The "ground" on which all the objects live (like the std::vector
 // in the zoo example).
 class ground {
 private:
   // Attention, NON-OWNING ptr, again to the screen
   SDL_Surface* window_surface_ptr_;
 
-  // Some attribute to store all the wolves and sheep
-  // here
+  // Some attribute to store all the moving objects
+  std::vector<moving_object*> moving_objects;
 public:
-    // todo: move to private and create getter
-    std::vector<moving_object*> moving_objects;
-    ground(SDL_Surface* window_surface_ptr); // todo: Ctor
-  ~ground(); // todo: Dtor, again for clean up (if necessary)
-  void add_animal(animal *animal); // todo: Add an animal
-  void update(); // todo: "refresh the screen": Move animals and draw them
+    ground(SDL_Surface* window_surface_ptr);
+    ~ground();
+    void add_moving_object(moving_object *moving_object);
+    void update(SDL_Window* window_ptr);
   // Possibly other methods, depends on your implementation
 };
 
@@ -176,7 +199,7 @@ private:
   unsigned seed_itr = 0;
 
 public:
-  application(unsigned n_sheep, unsigned n_wolf); // Ctor
+  application(unsigned n_sheep, unsigned n_wolf, unsigned n_shepherd_dog); // Ctor
     ~application();                                 // dtor
 
   int loop(unsigned period); // main loop of the application.

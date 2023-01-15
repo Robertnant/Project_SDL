@@ -64,15 +64,33 @@ int clamp(int position, int max_position) {
 
 } // namespace
 
-void foo(animal* a){
-    if constexpr (std::is_same_v<decltype(a), animal*>)
-        std::cout << "animal ";
-    else
-        std::cout << "lion ";
+// Constructor for rendered object.
+rendered_object::rendered_object(const std::string &file_path, SDL_Surface* window_surface_ptr, int object_width, int object_height) {
+    std::cout << file_path + "\n";
+    image_ptr_ = load_surface_for(file_path, window_surface_ptr);
+    window_surface_ptr_ = window_surface_ptr;
+
+    // Set initial (random) position and start object movement.
+    position_ptr_ = new SDL_Rect();
+    position_ptr_->x = clamp(frame_boundary + (rand() % frame_width), frame_width);
+    position_ptr_->y = clamp(frame_boundary + (rand() % frame_height), frame_height);
+
+    // Set object width and height.
+    position_ptr_->w = object_width;
+    position_ptr_->h = object_height;
+
+    draw();
+}
+
+// Draw function.
+void rendered_object::draw() {
+    // Blit onto the screen surface
+    if (SDL_BlitScaled(image_ptr_, NULL, window_surface_ptr_, position_ptr_) < 0)
+        throw std::runtime_error("BlitSurface error: " + std::string(SDL_GetError()) + "\n");
 }
 
 // Constructor for application.
-application::application(unsigned int n_sheep, unsigned int n_wolf) {
+application::application(unsigned n_sheep, unsigned n_wolf, unsigned n_shepherd_dog) {
     // Create window surface.
     window_ptr_ = SDL_CreateWindow("SDL2 Example", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                                    frame_width, frame_height, 0);
@@ -86,16 +104,15 @@ application::application(unsigned int n_sheep, unsigned int n_wolf) {
     std::cout << "Created ground for application.\n";
 
     for (unsigned int i = 0; i < n_sheep; i++) {
-        ground_ptr_->add_animal(new sheep(window_surface_ptr_, seed_itr));
+        ground_ptr_->add_moving_object(new sheep(window_surface_ptr_, seed_itr));
         seed_itr += 50;
     }
-    auto lptr = new sheep(window_surface_ptr_, 0);
-    animal* aptr = lptr;
-    foo(lptr);
-    foo(aptr);
-    delete lptr;
     for (unsigned int i = 0; i < n_wolf; i++) {
-        ground_ptr_->add_animal(new wolf(window_surface_ptr_, seed_itr));
+        ground_ptr_->add_moving_object(new wolf(window_surface_ptr_, seed_itr));
+        seed_itr += 50;
+    }
+    for (unsigned int i = 0; i < n_shepherd_dog; i++) {
+        ground_ptr_->add_moving_object(new shepherd_dog(window_surface_ptr_, seed_itr));
         seed_itr += 50;
     }
 
@@ -110,7 +127,7 @@ application::~application() {
     SDL_DestroyWindow(window_ptr_);
 }
 
-void ground::update() {
+void ground::update(SDL_Window* window_ptr) {
     /**
      * todo: if algo fails, start by just deleting all dead animals, then do interactions
      * no object can interact with a dead object anyways
@@ -132,15 +149,17 @@ void ground::update() {
             }
         }
     }
+    // Refresh screen.
+    SDL_UpdateWindowSurface(window_ptr);
+    SDL_Delay(1000 * frame_time);
+    SDL_FillRect(window_surface_ptr_, NULL,
+                 SDL_MapRGB(window_surface_ptr_->format, 255, 255, 255));
 }
 
 // todo: finish
 int application::loop(unsigned period) {
     while (period) {
-        ground_ptr_->update();
-        SDL_UpdateWindowSurface(window_ptr_);
-        SDL_Delay(1000 * frame_time);
-        SDL_FillRect(window_surface_ptr_, NULL, SDL_MapRGB(window_surface_ptr_->format, 255, 255, 255));
+        ground_ptr_->update(window_ptr_);
         period--;
     }
 
@@ -155,94 +174,14 @@ ground::ground(SDL_Surface* window_surface_ptr) {
 // Destructor for ground.
 ground::~ground() {
     // Free all animals in vector.
-    int i = 0;
-    while (!animals.empty())
+    while (!moving_objects.empty())
     {
-        std::cout << "deletani" << i++ << "\n";
-        animal* current_animal = animals.back();
-        delete current_animal;
-        animals.pop_back();
+        moving_object* current_object = moving_objects.back();
+        delete current_object;
+        moving_objects.pop_back();
     }
 }
 
-void ground::add_animal(animal *animal) {
-    animals.push_back(animal);
-}
-
-
-// Constructor for animal.
-animal::animal(const std::string &file_path, SDL_Surface* window_surface_ptr) {
-    std::cout << file_path + "\n";
-    image_ptr_ = load_surface_for(file_path, window_surface_ptr);
-    window_surface_ptr_ = window_surface_ptr;
-
-    // Set initial (random) position and start animal movement.
-    position_ptr_ = new SDL_Rect();
-    position_ptr_->x = clamp(frame_boundary + (rand() % frame_width), frame_width);
-    position_ptr_->y = clamp(frame_boundary + (rand() % frame_height), frame_height);
-
-    draw();
-}
-
-// Draw function.
-void animal::draw() {
-    // Blit onto the screen surface
-    if (!image_ptr_)
-        std::cout << "Null image surface passed\n";
-    if (!window_surface_ptr_)
-        std::cout << "Null window surface passed\n";
-    if (SDL_BlitScaled(image_ptr_, NULL, window_surface_ptr_, position_ptr_) < 0)
-        throw std::runtime_error("BlitSurface error: " + std::string(SDL_GetError()) + "\n");
-}
-
-void sheep::move()
-{
-    // Manage step.
-    if (position_ptr_->x == frame_boundary || position_ptr_->x == frame_width - frame_boundary) {
-        step_x *= -1;
-    }
-    if (position_ptr_->y == frame_boundary || position_ptr_->y == frame_height - frame_boundary) {
-        step_y *= -1;
-    }
-
-    // Update position.
-    position_ptr_->x = clamp(position_ptr_->x + step_x, frame_width);
-    position_ptr_->y = clamp(position_ptr_->y + step_y, frame_height);
-
-  draw();
-}
-
-void wolf::move()
-{
-    // Manage step.
-    if (position_ptr_->x == frame_boundary || position_ptr_->x == frame_width - frame_boundary) {
-        step_x *= -1;
-    }
-    if (position_ptr_->y == frame_boundary || position_ptr_->y == frame_height - frame_boundary) {
-        step_y *= -1;
-    }
-
-    srand(time(0) + seed_++);
-    int random = rand() % 4;
-
-    switch(random)
-    {
-        case 0:
-            step_x = 1;
-            break;
-        case 1:
-            step_y = 1;
-            break;
-        case 2:
-            step_x = -1;
-            break;
-        case 3:
-            step_y = -1;
-    }
-
-    // Update position.
-    position_ptr_->x = clamp(position_ptr_->x + step_x, frame_width);
-    position_ptr_->y = clamp(position_ptr_->y + step_y, frame_height);
-
-    draw();
+void ground::add_moving_object(moving_object *moving_object) {
+    moving_objects.push_back(moving_object);
 }
