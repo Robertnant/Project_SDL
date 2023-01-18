@@ -35,6 +35,7 @@ constexpr unsigned sheep_danger_distance = 10;
 
 // Sheep temporary speed boost value (in absolute value).
 constexpr unsigned velocity_boost = 3;
+constexpr Uint32 speed_boost_time = 100;
 
 // Character's default velocity.
 constexpr unsigned sheep_velocity = 1;
@@ -43,7 +44,10 @@ constexpr unsigned player_velocity = 1;
 constexpr unsigned shepherd_dog_velocity = 1;
 
 // Sheep default time before reproduction.
-// todo:
+constexpr unsigned sheep_reproduction_delay = 25;
+
+// Wolf time before death.
+constexpr unsigned death_delay = 25;
 
 // Wolf accepted distance between closest sheep and closest dog.
 constexpr unsigned wolf_danger_distance = 10;
@@ -77,7 +81,7 @@ public:
      * properties as well as their poisition.
      * Interact returns true if a new offspring is created after interaction.
      */
-    virtual bool interact(interact_object *other_object, SDL_Rect *other_position); // todo: handle interaction between characters; could maybe take another interact object
+    virtual bool interact(interact_object *other_object, SDL_Rect *other_position) = 0; // todo: handle interaction between characters; could maybe take another interact object
 
     // "get" and "add" functions for interact object properties
     void add_property(std::string property) {
@@ -151,7 +155,12 @@ class shepherd : public playable_character {
 public:
     shepherd(SDL_Surface* window_surface_ptr,
              SDL_Event* window_event): playable_character(shepherd_texture_path, window_surface_ptr, shepherd_width,
-                                                          shepherd_height, window_event);
+                                                          shepherd_height, window_event) {
+        // Add properties.
+        add_property("shepherd");
+        add_property("alive");
+    };
+    virtual bool interact(interact_object *other_object, SDL_Rect *other_object_position) override; // todo: implement
 };
 
 class animal : public moving_object {
@@ -166,13 +175,24 @@ public:
 // class sheep, derived from animal
 class sheep : public animal {
 private:
-    time_t time_before_reproduction = 0;
+    Uint32 time_before_reproduction;
+    Uint32 speed_timeout;
 public:
     sheep(SDL_Surface* window_surface_ptr, unsigned seed):animal(
             sheep_texture_path, window_surface_ptr, sheep_width, sheep_height){
+        speed_timeout = SDL_GetTicks();
+        time_before_reproduction = SDL_GetTicks() + sheep_reproduction_delay;
 
-        // Randomly select movement direction.
+        // Add properties.
+        add_property("sheep");
+        add_property("alive");
+        add_property("prey");
+        // Randomly select sheep sex and movement direction.
         srand(time(0) + seed);
+        if ((rand() % 2) == 0)
+            add_property("male");
+        else
+            add_property("female");
 
         // In this case the possible velocities for x/y are: -1, 0, 1.
         int step_x = 0;
@@ -188,14 +208,14 @@ public:
     virtual ~sheep(){};// destructor for the sheep
 
     virtual void move() override;  // todo: finish implementation
-    virtual bool interact(interact_object *other_object, SDL_Rect *other_object_position); // todo: implement
+    virtual bool interact(interact_object *other_object, SDL_Rect *other_object_position) override; // todo: implement
     bool has_different_sex(interact_object *other_object) {
         if (other_object->has_property("female"))
             return this->has_property("male");
         return this->has_property("female");
     };
     bool is_reproduction_time() {
-        return time_before_reproduction == 0;
+        return SDL_TICKS_PASSED(SDL_GetTicks(), time_before_reproduction);
     }
   // implement functions that are purely virtual in base class
 };
@@ -205,35 +225,49 @@ private:
     unsigned seed_;
     SDL_Rect *nearest_prey_position;
     SDL_Rect *nearest_shepherd_dog_position;
-  public:
+    Uint32 death_time;
+public:
     wolf(SDL_Surface* window_surface_ptr, unsigned seed):animal(
             wolf_texture_path, window_surface_ptr, wolf_width, wolf_height){
+        // Add properties.
+        add_property("wolf");
+        add_property("hunter");
+        add_property("alive");
         seed_ = seed;
-        // todo: add constexpr for default animal velocity.
-        velocity_x_ = 1;
-        velocity_y_ = 1;
+        velocity_x_ = wolf_velocity;
+        velocity_y_ = wolf_velocity;
         // Nearest sheep position and dog have not been found yet so wolf should stay still.
         nearest_prey_position = position_ptr_;
         nearest_shepherd_dog_position = position_ptr_;
+        // Set timer for when wolf should die if starving.
+        death_time = SDL_GetTicks() + death_delay;
     };
 
     virtual ~wolf(){}; // destructor for the wolf
 
     virtual void move() override;  // todo: finish implementation
     virtual bool interact(interact_object *other_object, SDL_Rect *other_object_position) override; // todo: implement
+    bool time_to_die() {
+        return SDL_TICKS_PASSED(SDL_GetTicks(), death_time);
+    };
 };
 
 class shepherd_dog : public animal {
 private:
     unsigned seed_;
+    SDL_Rect *shepherd_position;
 public:
     shepherd_dog(SDL_Surface* window_surface_ptr, unsigned seed):animal(
             shepherd_dog_texture_path, window_surface_ptr,
             shepherd_dog_width, shepherd_dog_height){
         seed_ = seed;
+
+        // Add properties.
+        add_property("shepherd_dog");
+        add_property("alive");
     };
 
-    virtual ~shepherd_dog(){}; // destructor for the wolf+
+    virtual ~shepherd_dog(){}; // destructor for the wolf
 
     virtual void move() override;  // todo: implement
     virtual bool interact(interact_object *other_object, SDL_Rect *other_object_position) override; // todo: implement

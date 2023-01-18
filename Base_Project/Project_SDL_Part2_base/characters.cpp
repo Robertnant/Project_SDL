@@ -3,6 +3,11 @@
 #include "Project_SDL2.h"
 
 void sheep::move() {
+    // Recover sheep original speed if speed boost timeout has passed.
+    if (SDL_TICKS_PASSED(SDL_GetTicks(), speed_timeout)) {
+        velocity_x_ = sheep_velocity;
+        velocity_y_ = sheep_velocity;
+    }
     // Manage step.
     // todo: figure out why there's two conditions
     // Reverse direction of sheep if needed.
@@ -22,7 +27,7 @@ void sheep::move() {
 
 bool sheep::interact(interact_object *other_object, SDL_Rect* other_position) {
     // Boost speed if close to wolf.
-    if (other_object->has_property("wolf") &&
+    if (other_object->has_property("hunter") &&
         distance(position_ptr_, other_position) == sheep_danger_distance ) {
         // Set timer for temporary speed boost and movement change.
 
@@ -32,10 +37,12 @@ bool sheep::interact(interact_object *other_object, SDL_Rect* other_position) {
         velocity_y_ *= -1;
         velocity_y_ += velocity_y_ > 0 ? velocity_boost : -velocity_boost;
         this->step(true, true);
+
+        speed_timeout = SDL_GetTicks() + speed_boost_time;
     }
     else if (is_reproduction_time() && other_object->has_property("sheep") && has_different_sex(other_object)) {
         // todo: reset time_before_reproduction timer.
-        time_before_reproduction = ...;
+        time_before_reproduction = SDL_GetTicks() + sheep_reproduction_delay;
         return true;
     }
 
@@ -60,8 +67,8 @@ bool wolf::interact(interact_object *other_object, SDL_Rect *other_object_positi
             // Kill sheep if too close else update nearest sheep position..
             if (object_distance == 0.0) {
                 // todo: maybe increase kill distance
-                // Reset last meal time.
-                last_meal_time = SDL_GetTicks();
+                // Reset wolf death time.
+                death_time = SDL_GetTicks() + death_delay;
                 other_object->mark_dead();
             }
             else if (object_distance < distance(this->position_ptr_, nearest_prey_position)) {
@@ -72,6 +79,26 @@ bool wolf::interact(interact_object *other_object, SDL_Rect *other_object_positi
         }
     }
     return false;
+}
+
+bool shepherd::interact(interact_object *other_object, SDL_Rect *other_position) {
+    // Nothing particular to be done for now.
+    return false;
+}
+
+bool shepherd_dog::interact(interact_object *other_object, SDL_Rect *other_position) {
+    // Nothing particular to be done for now.
+    return false;
+}
+
+void shepherd_dog::move() {
+    // Update velocity vector to follow shepherd.
+    velocity_x_ = shepherd_position->x - this->position_ptr_->x;
+    velocity_y_ = shepherd_position->y - this->position_ptr_->y;
+
+    // todo: Add reverse direction if needed. If not needed, then remove direction reverse for wolf
+    step(0, 0);
+    draw();
 }
 
 void wolf::move() {
@@ -86,6 +113,7 @@ void wolf::move() {
     velocity_y_ = nearest_prey_position->y - this->position_ptr_->y;
 
     // Reverse direction of wolf if needed.
+    // todo: maybe remove since clamp is used
     int step_x = 0;
     int step_y = 0;
     if (position_ptr_->x == frame_boundary || position_ptr_->x == frame_width - frame_boundary) {

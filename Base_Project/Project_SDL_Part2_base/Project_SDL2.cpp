@@ -176,7 +176,8 @@ void ground::update(SDL_Window* window_ptr) {
 // todo: finish
 int application::loop(unsigned period) {
     // todo: check if this new version works
-    while (SDL_GetTicks() != period) {
+    Uint32 timeout = SDL_GetTicks() + period;
+    while (!SDL_TICKS_PASSED(SDL_GetTicks(), timeout)) {
         ground_ptr_->update(window_ptr_);
     }
 
