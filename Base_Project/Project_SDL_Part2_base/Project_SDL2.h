@@ -203,7 +203,7 @@ public:
 class wolf : public animal {
 private:
     unsigned seed_;
-    SDL_Rect *nearest_sheep_position;
+    SDL_Rect *nearest_prey_position;
     SDL_Rect *nearest_shepherd_dog_position;
   public:
     wolf(SDL_Surface* window_surface_ptr, unsigned seed):animal(
@@ -213,7 +213,7 @@ private:
         velocity_x_ = 1;
         velocity_y_ = 1;
         // Nearest sheep position and dog have not been found yet so wolf should stay still.
-        nearest_sheep_position = position_ptr_;
+        nearest_prey_position = position_ptr_;
         nearest_shepherd_dog_position = position_ptr_;
     };
 

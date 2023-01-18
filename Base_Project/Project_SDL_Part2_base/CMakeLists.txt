@@ -32,6 +32,6 @@ ELSE()
   include_directories(${SDL2_INCLUDE_DIRS})
   include_directories(${SDL2_IMAGE_INCLUDE_DIRS})
 
-  add_executable(SDL_part2 main.cpp Project_SDL2.cpp animal.cpp playable_character.cpp)
+  add_executable(SDL_part2 main.cpp Project_SDL2.cpp characters.cpp)
   target_link_libraries(SDL_part2 ${SDL2_LIBRARIES} ${SDL2_IMAGE_LIBRARIES})
 ENDIF()

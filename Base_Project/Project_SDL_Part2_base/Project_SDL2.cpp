@@ -100,7 +100,7 @@ void rendered_object::draw() {
 }
 
 // Constructor for application.
-application::application(unsigned n_sheep, unsigned n_wolf, unsigned n_shepherd_dog) {
+application::application(unsigned n_sheep, unsigned n_wolf) {
     // Create window surface.
     window_ptr_ = SDL_CreateWindow("SDL2 Example", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                                    frame_width, frame_height, 0);
@@ -124,7 +124,7 @@ application::application(unsigned n_sheep, unsigned n_wolf, unsigned n_shepherd_
         ground_ptr_->add_moving_object(new wolf(window_surface_ptr_, seed_itr));
         seed_itr += 50;
     }
-    for (unsigned int i = 0; i < n_shepherd_dog; i++) {
+    for (unsigned int i = 0; i < 10; i++) {
         ground_ptr_->add_moving_object(new shepherd_dog(window_surface_ptr_, seed_itr));
         seed_itr += 50;
     }

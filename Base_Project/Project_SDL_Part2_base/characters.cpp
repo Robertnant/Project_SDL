@@ -52,9 +52,9 @@ bool wolf::interact(interact_object *other_object, SDL_Rect *other_object_positi
                 nearest_shepherd_dog_position = other_object_position;
         }
     }
-    else if (other_object->has_property("sheep")) {
-        if (nearest_sheep_position == position_ptr_)
-            nearest_sheep_position = other_object_position;
+    else if (other_object->has_property("prey")) {
+        if (nearest_prey_position == position_ptr_)
+            nearest_prey_position = other_object_position;
         else {
             double object_distance = distance(this->position_ptr_, other_object_position);
             // Kill sheep if too close else update nearest sheep position..
@@ -64,10 +64,10 @@ bool wolf::interact(interact_object *other_object, SDL_Rect *other_object_positi
                 last_meal_time = SDL_GetTicks();
                 other_object->mark_dead();
             }
-            else if (object_distance < distance(this->position_ptr_, nearest_sheep_position)) {
+            else if (object_distance < distance(this->position_ptr_, nearest_prey_position)) {
                 // Nearest sheep should not be too close to nearest dog.
-                if (distance(nearest_sheep_position, nearest_shepherd_dog_position) > wolf_danger_distance)
-                    nearest_sheep_position = other_object_position;
+                if (distance(nearest_prey_position, nearest_shepherd_dog_position) > wolf_danger_distance)
+                    nearest_prey_position = other_object_position;
             }
         }
     }
@@ -82,8 +82,8 @@ void wolf::move() {
     }
 
     // Update velocity vector to follow nearest sheep.
-    velocity_x_ = nearest_sheep_position->x - this->position_ptr_->x;
-    velocity_y_ = nearest_sheep_position->y - this->position_ptr_->y;
+    velocity_x_ = nearest_prey_position->x - this->position_ptr_->x;
+    velocity_y_ = nearest_prey_position->y - this->position_ptr_->y;
 
     // Reverse direction of wolf if needed.
     int step_x = 0;
