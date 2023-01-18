@@ -36,6 +36,12 @@ constexpr unsigned sheep_danger_distance = 10;
 // Sheep temporary speed boost value (in absolute value).
 constexpr unsigned velocity_boost = 3;
 
+// Character's default velocity.
+constexpr unsigned sheep_velocity = 1;
+constexpr unsigned wolf_velocity = 1;
+constexpr unsigned player_velocity = 1;
+constexpr unsigned shepherd_dog_velocity = 1;
+
 // Sheep default time before reproduction.
 // todo:
 
@@ -121,26 +127,37 @@ public:
     virtual void move() = 0;
     // fashion depending on which type of animal. Move calls step function to modify object position
     // Step modifies velocity of object through step_x and step_y and updates object position.
-    void step(int step_x, int step_y) {
-        velocity_x_ += step_x;
-        velocity_y_ += step_y;
+    void step(int increment_x, int increment_y) {
+        velocity_x_ += increment_x;
+        velocity_y_ += increment_y;
         position_ptr_->x = clamp(position_ptr_->x + velocity_x_, frame_width);
         position_ptr_->y = clamp(position_ptr_->y + velocity_y_, frame_height);
     };
 };
 
-class playable_character {
-
+class playable_character : public moving_object {
+private:
+    SDL_Event* window_event_;
+public:
+    playable_character(const std::string &file_path, SDL_Surface* window_surface_ptr, int object_width,
+                       int object_height, SDL_Event* window_event) :
+                       moving_object(file_path, window_surface_ptr, object_width, object_height) {
+        window_event_ = window_event;
+    }
+    virtual void move() override;  // todo: implement
 };
 
-class shepherd {
-
+class shepherd : public playable_character {
+public:
+    shepherd(SDL_Surface* window_surface_ptr,
+             SDL_Event* window_event): playable_character(shepherd_texture_path, window_surface_ptr, shepherd_width,
+                                                          shepherd_height, window_event);
 };
 
 class animal : public moving_object {
 public:
   animal(const std::string &file_path, SDL_Surface* window_surface_ptr, int object_width,
-         int object_height): moving_object(sheep_texture_path, window_surface_ptr,
+         int object_height): moving_object(file_path, window_surface_ptr,
                                            object_width, object_height){};
   virtual ~animal(){};
 };
@@ -245,14 +262,14 @@ private:
   // The following are OWNING ptrs
   SDL_Window* window_ptr_;
   SDL_Surface* window_surface_ptr_;
-  SDL_Event window_event_;
+  SDL_Event* window_event_; // Teacher forgot to add '*' to indicate pointer here
 
   // Other attributes here, for example an instance of ground
   ground* ground_ptr_;
   unsigned seed_itr = 0;
 
 public:
-  application(unsigned n_sheep, unsigned n_wolf, unsigned n_shepherd_dog); // Ctor
+  application(unsigned n_sheep, unsigned n_wolf); // Ctor
     ~application();                                 // dtor
 
   int loop(unsigned period); // main loop of the application.

@@ -4,7 +4,7 @@
 
 void sheep::move() {
     // Manage step.
-    // todo: figure out whuy there's two conditions
+    // todo: figure out why there's two conditions
     // Reverse direction of sheep if needed.
     int step_x = 0;
     int step_y = 0;
@@ -97,4 +97,57 @@ void wolf::move() {
 
     step(step_x, step_y);
     draw();
+}
+
+void playable_character::move() {
+    while(SDL_PollEvent( window_event_)) {
+        switch(window_event_->type ) {
+            case SDL_KEYDOWN:
+                switch(window_event_->key.keysym.sym){
+                    case SDLK_LEFT:
+                        velocity_x_ = -player_velocity;
+                        break;
+                    case SDLK_RIGHT:
+                        velocity_x_ = player_velocity;
+                        break;
+                    case SDLK_UP:
+                        velocity_y_ = -player_velocity;
+                        break;
+                    case SDLK_DOWN:
+                        velocity_y_ = player_velocity;
+                        break;
+                    default:
+                        break;
+                }
+                break;
+                // Zero velocities if necessary.
+            case SDL_KEYUP:
+                switch(window_event_->key.keysym.sym){
+                    case SDLK_LEFT:
+                        if(velocity_x_ < 0 )
+                            velocity_x_ = 0;
+                        break;
+                    case SDLK_RIGHT:
+                        if(velocity_x_ > 0 )
+                            velocity_x_ = 0;
+                        break;
+                    case SDLK_UP:
+                        if(velocity_y_ < 0 )
+                            velocity_y_ = 0;
+                        break;
+                    case SDLK_DOWN:
+                        if(velocity_y_ > 0 )
+                            velocity_y_ = 0;
+                        break;
+                    default:
+                        break;
+                }
+                break;
+
+            default:
+                break;
+        }
+    }
+    // Update player position.
+    step(0, 0);
 }

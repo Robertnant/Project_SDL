@@ -109,6 +109,9 @@ application::application(unsigned n_sheep, unsigned n_wolf, unsigned n_shepherd_
     // todo: Use correct color.
     SDL_FillRect(window_surface_ptr_, NULL, SDL_MapRGB(window_surface_ptr_->format, 255, 255, 255));
 
+    // Initialize playable character.
+    ground_ptr_->add_moving_object(new shepherd(window_surface_ptr_, window_event_));
+
     // Create ground with animals.
     ground_ptr_ = new ground(window_surface_ptr_);
     std::cout << "Created ground for application.\n";
@@ -144,13 +147,13 @@ void ground::update(SDL_Window* window_ptr) {
      */
     for (unsigned int i = 0; i < moving_objects.size(); i++) {
         // todo: Find better way to add object in random position.
-        moving_objects[i]->move(new sheep(window_surface_ptr_, seed_itr));
+        moving_objects[i]->move();
         for (unsigned int j = 0; i < moving_objects.size(); i++) {
             // A moving object should not interact with itself.
             if (i == j)
                 continue;
             if (moving_objects[i]->interact(moving_objects[j], nullptr)) {
-                add_moving_object()
+                add_moving_object(new sheep(window_surface_ptr_, seed_itr));
             };
             // todo: Add offspring if any.
 
@@ -172,9 +175,9 @@ void ground::update(SDL_Window* window_ptr) {
 
 // todo: finish
 int application::loop(unsigned period) {
-    while (period) {
+    // todo: check if this new version works
+    while (SDL_GetTicks() != period) {
         ground_ptr_->update(window_ptr_);
-        period--;
     }
 
     return 0;
