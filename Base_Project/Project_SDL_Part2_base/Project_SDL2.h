@@ -39,6 +39,9 @@ constexpr unsigned velocity_boost = 3;
 // Sheep default time before reproduction.
 // todo:
 
+// Wolf accepted distance between closest sheep and closest dog.
+constexpr unsigned wolf_danger_distance = 10;
+
 // Path to sheep and wolf texture
 const std::string sheep_texture_path = "../../media/sheep.png";
 const std::string wolf_texture_path = "../../media/wolf.png";
@@ -117,7 +120,7 @@ public:
     virtual ~moving_object(){};
     virtual void move() = 0;
     // fashion depending on which type of animal. Move calls step function to modify object position
-    // Step modifies velocity of object through by step_x and step_y and updates object position.
+    // Step modifies velocity of object through step_x and step_y and updates object position.
     void step(int step_x, int step_y) {
         velocity_x_ += step_x;
         velocity_y_ += step_y;
@@ -183,10 +186,18 @@ public:
 class wolf : public animal {
 private:
     unsigned seed_;
+    SDL_Rect *nearest_sheep_position;
+    SDL_Rect *nearest_shepherd_dog_position;
   public:
     wolf(SDL_Surface* window_surface_ptr, unsigned seed):animal(
             wolf_texture_path, window_surface_ptr, wolf_width, wolf_height){
         seed_ = seed;
+        // todo: add constexpr for default animal velocity.
+        velocity_x_ = 1;
+        velocity_y_ = 1;
+        // Nearest sheep position and dog have not been found yet so wolf should stay still.
+        nearest_sheep_position = position_ptr_;
+        nearest_shepherd_dog_position = position_ptr_;
     };
 
     virtual ~wolf(){}; // destructor for the wolf
