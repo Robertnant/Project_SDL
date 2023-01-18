@@ -21,10 +21,23 @@ constexpr unsigned sheep_width = 50; // Width of sheep in pixel
 constexpr unsigned sheep_height = 50; // Height of sheep in pixel
 constexpr unsigned wolf_width = 50; // Width of wolf in pixel
 constexpr unsigned wolf_height = 25; // Height of wolf in pixel
+constexpr unsigned shepherd_dog_width = 50; // Width of shepherd dog in pixel
+constexpr unsigned shepherd_dog_height = 25; // Height of shepherd dog in pixel
+constexpr unsigned shepherd_width = 50; // Width of shepherd in pixel
+constexpr unsigned shepherd_height = 25; // Height of shepherd in pixel
 
 // Minimal distance of animals to the border
 // of the screen
 constexpr unsigned frame_boundary = 100;
+
+// Distance for which sheep should run away from wolf.
+constexpr unsigned sheep_danger_distance = 10;
+
+// Sheep temporary speed boost value (in absolute value).
+constexpr unsigned velocity_boost = 3;
+
+// Sheep default time before reproduction.
+// todo:
 
 // Path to sheep and wolf texture
 const std::string sheep_texture_path = "../../media/sheep.png";
@@ -32,8 +45,14 @@ const std::string wolf_texture_path = "../../media/wolf.png";
 const std::string shepherd_dog_texture_path = "../../media/shepherd_dog.png";
 const std::string shepherd_texture_path = "../../media/shepherd.png";
 
-        // Helper function to initialize SDL
+// Helper function to initialize SDL
 void init();
+
+// Helper function to calculate distance between two objects.
+double distance(SDL_Rect* first_object_pos, SDL_Rect* second_object_pos);
+
+// Helper function to clamp position of object.
+int clamp(int position, int max_position);
 
 class interact_object {
 protected: // todo: maybe make properties private
@@ -44,7 +63,12 @@ public:
         properties.insert("alive");
     };
     virtual ~interact_object(){}; // destructor
-    virtual void interact(interact_object *other_object); // todo: handle interaction between characters; could maybe take another interact object
+    /**
+     * Interact function makes two objects interact with each other depending on their
+     * properties as well as their poisition.
+     * Interact returns true if a new offspring is created after interaction.
+     */
+    virtual bool interact(interact_object *other_object, SDL_Rect *other_position); // todo: handle interaction between characters; could maybe take another interact object
 
     // "get" and "add" functions for interact object properties
     void add_property(std::string property) {
@@ -57,6 +81,9 @@ public:
     bool is_alive() {
         return properties.find("alive") != properties.end();
     };
+    bool has_property(std::string property) {
+        return properties.find(property) != properties.end();
+    }
 };
 
 class rendered_object : public interact_object {
@@ -80,7 +107,7 @@ public:
 };
 
 class moving_object : public rendered_object {
-private:
+protected:
     int velocity_x_ = 0; // maybe the same as step_x and step_y that were used before
     int velocity_y_ = 0;
 public:
@@ -89,10 +116,13 @@ public:
                           sheep_texture_path, window_surface_ptr, object_width, object_height){}; // todo: maybe add an initial velocity ? (not that necessary for now maybe)
     virtual ~moving_object(){};
     virtual void move() = 0;
-    // fashion depending on which type of animal. Move calls step function to modify velocity
+    // fashion depending on which type of animal. Move calls step function to modify object position
+    // Step modifies velocity of object through by step_x and step_y and updates object position.
     void step(int step_x, int step_y) {
         velocity_x_ += step_x;
         velocity_y_ += step_y;
+        position_ptr_->x = clamp(position_ptr_->x + velocity_x_, frame_width);
+        position_ptr_->y = clamp(position_ptr_->y + velocity_y_, frame_height);
     };
 };
 
@@ -115,13 +145,16 @@ public:
 // Insert here:
 // class sheep, derived from animal
 class sheep : public animal {
-  public:
+private:
+    time_t time_before_reproduction = 0;
+public:
     sheep(SDL_Surface* window_surface_ptr, unsigned seed):animal(
             sheep_texture_path, window_surface_ptr, sheep_width, sheep_height){
 
         // Randomly select movement direction.
         srand(time(0) + seed);
 
+        // In this case the possible velocities for x/y are: -1, 0, 1.
         int step_x = 0;
         int step_y = 0;
         while (step_x == 0 && step_y == 0) {
@@ -135,7 +168,15 @@ class sheep : public animal {
     virtual ~sheep(){};// destructor for the sheep
 
     virtual void move() override;  // todo: finish implementation
-    virtual void interact(interact_object *other_object); // todo: implement
+    virtual bool interact(interact_object *other_object, SDL_Rect *other_object_position); // todo: implement
+    bool has_different_sex(interact_object *other_object) {
+        if (other_object->has_property("female"))
+            return this->has_property("male");
+        return this->has_property("female");
+    };
+    bool is_reproduction_time() {
+        return time_before_reproduction == 0;
+    }
   // implement functions that are purely virtual in base class
 };
 
@@ -151,7 +192,7 @@ private:
     virtual ~wolf(){}; // destructor for the wolf
 
     virtual void move() override;  // todo: finish implementation
-    virtual void interact(interact_object *other_object) override; // todo: implement
+    virtual bool interact(interact_object *other_object, SDL_Rect *other_object_position) override; // todo: implement
 };
 
 class shepherd_dog : public animal {
@@ -159,14 +200,15 @@ private:
     unsigned seed_;
 public:
     shepherd_dog(SDL_Surface* window_surface_ptr, unsigned seed):animal(
-            wolf_texture_path, window_surface_ptr, wolf_width, wolf_height){
+            shepherd_dog_texture_path, window_surface_ptr,
+            shepherd_dog_width, shepherd_dog_height){
         seed_ = seed;
     };
 
-    virtual ~shepherd_dog(){}; // destructor for the wolf
+    virtual ~shepherd_dog(){}; // destructor for the wolf+
 
     virtual void move() override;  // todo: implement
-    virtual void interact(interact_object *other_object) override; // todo: implement
+    virtual bool interact(interact_object *other_object, SDL_Rect *other_object_position) override; // todo: implement
 };
 
 // The "ground" on which all the objects live (like the std::vector

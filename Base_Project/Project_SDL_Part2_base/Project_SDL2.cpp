@@ -23,6 +23,26 @@ void init() {
                              std::string(IMG_GetError()));
 }
 
+// Function to clamp position of animal.
+int clamp(int position, int max_position) {
+    if (position < frame_boundary)
+        return frame_boundary;
+    if (position > (max_position - frame_boundary))
+        return max_position - frame_boundary;
+
+    return position;
+}
+
+// Helper function to calculate distance between two objects.
+double distance(SDL_Rect* first_object_pos, SDL_Rect* second_object_pos) {
+    int x1 = first_object_pos->x;
+    int x2 = second_object_pos->x;
+    int y1 = first_object_pos->y;
+    int y2 = second_object_pos->y;
+
+    return sqrt((x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1));
+}
+
 namespace {
 // Defining a namespace without a name -> Anonymous workspace
 // Its purpose is to indicate to the compiler that everything
@@ -50,16 +70,6 @@ SDL_Surface* load_surface_for(const std::string& path,
     SDL_FreeSurface(image_surface);
 
     return converted_surface;
-}
-
-// Function to clamp position of animal.
-int clamp(int position, int max_position) {
-    if (position < frame_boundary)
-        return frame_boundary;
-    if (position > (max_position - frame_boundary))
-        return max_position - frame_boundary;
-
-    return position;
 }
 
 } // namespace
@@ -133,12 +143,16 @@ void ground::update(SDL_Window* window_ptr) {
      * no object can interact with a dead object anyways
      */
     for (unsigned int i = 0; i < moving_objects.size(); i++) {
-        moving_objects[i]->move();
+        // todo: Find better way to add object in random position.
+        moving_objects[i]->move(new sheep(window_surface_ptr_, seed_itr));
         for (unsigned int j = 0; i < moving_objects.size(); i++) {
             // A moving object should not interact with itself.
             if (i == j)
                 continue;
-            moving_objects[i]->interact(moving_objects[j]);
+            if (moving_objects[i]->interact(moving_objects[j], nullptr)) {
+                add_moving_object()
+            };
+            // todo: Add offspring if any.
 
             // Remove potential dead object.
             if (!moving_objects[i]->is_alive()) {
