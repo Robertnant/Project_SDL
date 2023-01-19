@@ -4,9 +4,15 @@
 
 void sheep::move() {
     // Recover sheep original speed if speed boost timeout has passed.
-    if (SDL_TICKS_PASSED(SDL_GetTicks(), speed_timeout)) {
-        velocity_x_ = sheep_velocity;
-        velocity_y_ = sheep_velocity;
+    if (speed_timeout != 0 && SDL_TICKS_PASSED(SDL_GetTicks(), speed_timeout)) {
+        if (velocity_x_ > 0)
+            velocity_x_ -= velocity_boost;
+        else if (velocity_x_ < 0)
+            velocity_x_ += velocity_boost;
+        if (velocity_y_ > 0)
+            velocity_y_ -= velocity_boost;
+        else if (velocity_y_ < 0)
+            velocity_y_ += velocity_boost;
     }
     // Manage step.
     // todo: figure out why there's two conditions
@@ -25,18 +31,22 @@ void sheep::move() {
     draw();
 }
 
-bool sheep::interact(interact_object *other_object, SDL_Rect* other_position) {
+bool sheep::interact(interact_object *other_object) {
     // Boost speed if close to wolf.
     if (other_object->has_property("hunter") &&
-        distance(position_ptr_, other_position) == sheep_danger_distance ) {
+        distance(position_ptr_, other_object->get_position()) == sheep_danger_distance ) {
         // Set timer for temporary speed boost and movement change.
 
         // Boost sheep speed.
-        velocity_x_ *= -1;
-        velocity_x_ += velocity_x_ > 0 ? velocity_boost : -velocity_boost;
-        velocity_y_ *= -1;
-        velocity_y_ += velocity_y_ > 0 ? velocity_boost : -velocity_boost;
-        this->step(true, true);
+        if (velocity_x_) {
+            velocity_x_ *= -1;
+            velocity_x_ += velocity_x_ > 0 ? velocity_boost : -velocity_boost;
+        }
+        if (velocity_y_) {
+            velocity_y_ *= -1;
+            velocity_y_ += velocity_y_ > 0 ? velocity_boost : -velocity_boost;
+        }
+        this->step(0, 0);
 
         speed_timeout = SDL_GetTicks() + speed_boost_time;
     }
@@ -49,21 +59,21 @@ bool sheep::interact(interact_object *other_object, SDL_Rect* other_position) {
     return false;
 }
 
-bool wolf::interact(interact_object *other_object, SDL_Rect *other_object_position) {
+bool wolf::interact(interact_object *other_object) {
     if (other_object->has_property("shepherd_dog")) {
         if (nearest_shepherd_dog_position == position_ptr_)
-            nearest_shepherd_dog_position = other_object_position;
+            nearest_shepherd_dog_position = other_object->get_position();
         else {
-            double object_distance = distance(this->position_ptr_, other_object_position);
+            double object_distance = distance(this->position_ptr_, other_object->get_position());
             if (object_distance < distance(this->position_ptr_, nearest_shepherd_dog_position))
-                nearest_shepherd_dog_position = other_object_position;
+                nearest_shepherd_dog_position = other_object->get_position();
         }
     }
     else if (other_object->has_property("prey")) {
         if (nearest_prey_position == position_ptr_)
-            nearest_prey_position = other_object_position;
+            nearest_prey_position = other_object->get_position();
         else {
-            double object_distance = distance(this->position_ptr_, other_object_position);
+            double object_distance = distance(this->position_ptr_, other_object->get_position());
             // Kill sheep if too close else update nearest sheep position..
             if (object_distance == 0.0) {
                 // todo: maybe increase kill distance
@@ -74,27 +84,29 @@ bool wolf::interact(interact_object *other_object, SDL_Rect *other_object_positi
             else if (object_distance < distance(this->position_ptr_, nearest_prey_position)) {
                 // Nearest sheep should not be too close to nearest dog.
                 if (distance(nearest_prey_position, nearest_shepherd_dog_position) > wolf_danger_distance)
-                    nearest_prey_position = other_object_position;
+                    nearest_prey_position = other_object->get_position();
             }
         }
     }
     return false;
 }
 
-bool shepherd::interact(interact_object *other_object, SDL_Rect *other_position) {
+bool shepherd::interact(interact_object *other_object) {
     // Nothing particular to be done for now.
     return false;
 }
 
-bool shepherd_dog::interact(interact_object *other_object, SDL_Rect *other_position) {
-    // Nothing particular to be done for now.
+bool shepherd_dog::interact(interact_object *other_object) {
+    // Find shepherd.
+    if (shepherd_position_ == position_ptr_ && other_object->has_property("shepherd"))
+        shepherd_position_ = other_object->get_position();
     return false;
 }
 
 void shepherd_dog::move() {
     // Update velocity vector to follow shepherd.
-    velocity_x_ = shepherd_position->x - this->position_ptr_->x;
-    velocity_y_ = shepherd_position->y - this->position_ptr_->y;
+    velocity_x_ = shepherd_position_->x - this->position_ptr_->x + 30;
+    velocity_y_ = shepherd_position_->y - this->position_ptr_->y + 30;
 
     // todo: Add reverse direction if needed. If not needed, then remove direction reverse for wolf
     step(0, 0);
@@ -128,10 +140,12 @@ void wolf::move() {
 }
 
 void playable_character::move() {
-    while(SDL_PollEvent( window_event_)) {
-        switch(window_event_->type ) {
+    while(SDL_PollEvent(&window_event_)) {
+        switch(window_event_.type) {
             case SDL_KEYDOWN:
-                switch(window_event_->key.keysym.sym){
+                std::cout << "key pressed\n";
+                std::cout << "Player position (x" << position_ptr_->x << ", y" << position_ptr_->y << ")\n";
+                switch(window_event_.key.keysym.sym){
                     case SDLK_LEFT:
                         velocity_x_ = -player_velocity;
                         break;
@@ -150,7 +164,7 @@ void playable_character::move() {
                 break;
                 // Zero velocities if necessary.
             case SDL_KEYUP:
-                switch(window_event_->key.keysym.sym){
+                switch(window_event_.key.keysym.sym){
                     case SDLK_LEFT:
                         if(velocity_x_ < 0 )
                             velocity_x_ = 0;
@@ -178,4 +192,5 @@ void playable_character::move() {
     }
     // Update player position.
     step(0, 0);
+    draw();
 }

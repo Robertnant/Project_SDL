@@ -109,25 +109,28 @@ application::application(unsigned n_sheep, unsigned n_wolf) {
     // todo: Use correct color.
     SDL_FillRect(window_surface_ptr_, NULL, SDL_MapRGB(window_surface_ptr_->format, 255, 255, 255));
 
-    // Initialize playable character.
-    ground_ptr_->add_moving_object(new shepherd(window_surface_ptr_, window_event_));
-
     // Create ground with animals.
     ground_ptr_ = new ground(window_surface_ptr_);
     std::cout << "Created ground for application.\n";
 
-    for (unsigned int i = 0; i < n_sheep; i++) {
+    // Initialize playable character.
+    ground_ptr_->add_moving_object(new shepherd(window_surface_ptr_, window_event_));
+
+    for (unsigned int i = 0; i < 2; i++) {
+        ground_ptr_->add_moving_object(new shepherd_dog(window_surface_ptr_, seed_itr));
+        seed_itr += 50; // todo: maybe delete seed_itr
+    }
+
+    for (unsigned int i = 0; i < 1; i++) {
         ground_ptr_->add_moving_object(new sheep(window_surface_ptr_, seed_itr));
         seed_itr += 50;
     }
+    /*
     for (unsigned int i = 0; i < n_wolf; i++) {
         ground_ptr_->add_moving_object(new wolf(window_surface_ptr_, seed_itr));
         seed_itr += 50;
     }
-    for (unsigned int i = 0; i < 10; i++) {
-        ground_ptr_->add_moving_object(new shepherd_dog(window_surface_ptr_, seed_itr));
-        seed_itr += 50;
-    }
+    */
 
     std::cout << "Added animals.\n";
 }
@@ -148,20 +151,19 @@ void ground::update(SDL_Window* window_ptr) {
     for (unsigned int i = 0; i < moving_objects.size(); i++) {
         // todo: Find better way to add object in random position.
         moving_objects[i]->move();
-        for (unsigned int j = 0; i < moving_objects.size(); i++) {
+        for (unsigned int j = 0; j < moving_objects.size(); j++) {
             // A moving object should not interact with itself.
             if (i == j)
                 continue;
-            if (moving_objects[i]->interact(moving_objects[j], nullptr)) {
-                add_moving_object(new sheep(window_surface_ptr_, seed_itr));
+            if (moving_objects[i]->interact(moving_objects[j])) {
+                add_moving_object(new sheep(window_surface_ptr_, 0));
             };
-            // todo: Add offspring if any.
 
             // Remove potential dead object.
             if (!moving_objects[i]->is_alive()) {
                 moving_objects.erase(moving_objects.begin() + i--);
                 break;  // dead object at index i no longer needs to interact with others
-            } else if (!moving_objects[j]) {
+            } else if (!moving_objects[j]->is_alive()) {
                 moving_objects.erase(moving_objects.begin() + j--);
             }
         }
@@ -198,8 +200,4 @@ ground::~ground() {
         delete current_object;
         moving_objects.pop_back();
     }
-}
-
-void ground::add_moving_object(moving_object *moving_object) {
-    moving_objects.push_back(moving_object);
 }
