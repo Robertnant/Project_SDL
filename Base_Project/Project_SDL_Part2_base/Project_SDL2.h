@@ -49,10 +49,10 @@ constexpr unsigned shepherd_min_distance = 5;
 
 
 // Sheep default time before reproduction.
-constexpr unsigned sheep_reproduction_delay = 25;
+constexpr unsigned sheep_reproduction_delay = 2500;
 
 // Wolf time before death.
-constexpr unsigned death_delay = 25;
+constexpr unsigned death_delay = 15000;
 
 // Wolf accepted distance between closest sheep and closest dog.
 constexpr unsigned wolf_danger_distance = 10;
@@ -213,6 +213,11 @@ public:
             step_y = (-1 + rand() % 3) * sheep_velocity;
         }
 
+        // Set initial position (random).
+        position_ptr_->x = clamp(frame_boundary + (rand() % frame_width), frame_width);
+        position_ptr_->y = clamp(frame_boundary + (rand() % frame_height), frame_height);
+
+        // Set movement.
         step(step_x, step_y);
     };
 

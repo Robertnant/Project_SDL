@@ -36,6 +36,7 @@ bool sheep::interact(interact_object *other_object) {
     if (other_object->has_property("hunter") &&
         distance(position_ptr_, other_object->get_position()) == sheep_danger_distance ) {
         // Set timer for temporary speed boost and movement change.
+        std::cout << "Danger for sheep! \n";
 
         // Boost sheep speed.
         if (velocity_x_) {
@@ -50,10 +51,12 @@ bool sheep::interact(interact_object *other_object) {
 
         speed_timeout = SDL_GetTicks() + speed_boost_time;
     }
-    else if (is_reproduction_time() && other_object->has_property("sheep") && has_different_sex(other_object)) {
-        // todo: reset time_before_reproduction timer.
-        time_before_reproduction = SDL_GetTicks() + sheep_reproduction_delay;
-        return true;
+    else if (distance(position_ptr_, other_object->get_position()) == 0) {
+        if (is_reproduction_time() && other_object->has_property("sheep") && has_different_sex(other_object)) {
+            // todo: reset time_before_reproduction timer.
+            time_before_reproduction = SDL_GetTicks() + sheep_reproduction_delay;
+            return true;
+        }
     }
 
     return false;
@@ -116,6 +119,7 @@ void shepherd_dog::move() {
 void wolf::move() {
     // Starve wolf if has not caught sheep for a long time.
     if (time_to_die()) {
+        std::cout << "Wolf died :/\n";
         mark_dead();
         return;
     }
@@ -143,8 +147,6 @@ void playable_character::move() {
     while(SDL_PollEvent(&window_event_)) {
         switch(window_event_.type) {
             case SDL_KEYDOWN:
-                std::cout << "key pressed\n";
-                std::cout << "Player position (x" << position_ptr_->x << ", y" << position_ptr_->y << ")\n";
                 switch(window_event_.key.keysym.sym){
                     case SDLK_LEFT:
                         velocity_x_ = -player_velocity;
