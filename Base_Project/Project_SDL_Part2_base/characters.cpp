@@ -19,10 +19,10 @@ void sheep::move() {
     // Reverse direction of sheep if needed.
     int step_x = 0;
     int step_y = 0;
-    if (position_ptr_->x == frame_boundary || position_ptr_->x == frame_width - frame_boundary) {
+    if (position_ptr_->x <= frame_boundary ||  position_ptr_->x >= frame_width - frame_boundary) {
         step_x = -velocity_x_ * 2;
     }
-    if (position_ptr_->y == frame_boundary || position_ptr_->y == frame_height - frame_boundary) {
+    if (position_ptr_->y <= frame_boundary || position_ptr_->y == frame_height - frame_boundary) {
         step_y = -velocity_y_ * 2;
     }
 
