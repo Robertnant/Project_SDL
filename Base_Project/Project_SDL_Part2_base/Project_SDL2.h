@@ -32,30 +32,31 @@ constexpr unsigned shepherd_height = 25; // Height of shepherd in pixel
 constexpr unsigned frame_boundary = 100;
 
 // Distance for which sheep should run away from wolf.
-constexpr unsigned sheep_danger_distance = 10;
+constexpr unsigned sheep_danger_distance = 40;
+constexpr unsigned kill_distance = 30;
 
 // Sheep temporary speed boost value (in absolute value).
 constexpr unsigned velocity_boost = 3;
-constexpr Uint32 speed_boost_time = 100;
+constexpr Uint32 speed_boost_time = 10000;
 
 // Character's default velocity.
 constexpr unsigned sheep_velocity = 1;
 constexpr unsigned wolf_velocity = 1;
-constexpr unsigned player_velocity = 1;
+constexpr unsigned player_velocity = 2;
 constexpr unsigned shepherd_dog_velocity = 1;
 
 // Minimum distance between shepherd and dog.
 constexpr unsigned shepherd_min_distance = 5;
 
-
 // Sheep default time before reproduction.
 constexpr unsigned sheep_reproduction_delay = 2500;
 
-// Wolf time before death.
-constexpr unsigned death_delay = 15000;
+// Wolf time before death and delay before killing (to prevent sheep from dying at start of game).
+constexpr unsigned death_delay = 1500000;
+constexpr unsigned delay_before_kill = 3000;
 
 // Wolf accepted distance between closest sheep and closest dog.
-constexpr unsigned wolf_danger_distance = 10;
+constexpr unsigned wolf_danger_distance = 200;
 
 // Path to sheep and wolf texture
 const std::string sheep_texture_path = "../../media/sheep.png";
@@ -238,10 +239,10 @@ public:
 
 class wolf : public animal {
 private:
-    unsigned seed_;
     SDL_Rect *nearest_prey_position;
     SDL_Rect *nearest_shepherd_dog_position;
     Uint32 death_time;
+    Uint32 wolf_delay_before_kill = 1000;
 public:
     wolf(SDL_Surface* window_surface_ptr, unsigned seed):animal(
             wolf_texture_path, window_surface_ptr, wolf_width, wolf_height){
@@ -249,7 +250,6 @@ public:
         add_property("wolf");
         add_property("hunter");
         add_property("alive");
-        seed_ = seed;
         velocity_x_ = wolf_velocity;
         velocity_y_ = wolf_velocity;
         // Nearest sheep position and dog have not been found yet so wolf should stay still.
@@ -257,6 +257,12 @@ public:
         nearest_shepherd_dog_position = position_ptr_;
         // Set timer for when wolf should die if starving.
         death_time = SDL_GetTicks() + death_delay;
+
+        wolf_delay_before_kill = SDL_GetTicks() + delay_before_kill;
+
+        // Set initial position (random).
+        position_ptr_->x = clamp(frame_boundary + (rand() % frame_width), frame_width);
+        position_ptr_->y = clamp(frame_boundary + (rand() % frame_height), frame_height);
     };
 
     virtual ~wolf(){}; // destructor for the wolf
@@ -266,17 +272,18 @@ public:
     bool time_to_die() {
         return SDL_TICKS_PASSED(SDL_GetTicks(), death_time);
     };
+    bool can_kill() {
+        return SDL_TICKS_PASSED(SDL_GetTicks(), wolf_delay_before_kill);;
+    }
 };
 
 class shepherd_dog : public animal {
 private:
-    unsigned seed_;
     SDL_Rect *shepherd_position_;
 public:
-    shepherd_dog(SDL_Surface* window_surface_ptr, unsigned seed):animal(
+    shepherd_dog(SDL_Surface* window_surface_ptr):animal(
             shepherd_dog_texture_path, window_surface_ptr,
             shepherd_dog_width, shepherd_dog_height){
-        seed_ = seed;
         // Set shepherd position this shepherd dog's position at first.
         shepherd_position_ = position_ptr_;
 

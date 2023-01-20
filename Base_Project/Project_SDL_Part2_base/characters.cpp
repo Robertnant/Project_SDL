@@ -13,37 +13,40 @@ void sheep::move() {
             velocity_y_ -= velocity_boost;
         else if (velocity_y_ < 0)
             velocity_y_ += velocity_boost;
+        // Reset speed timeout.
+        speed_timeout = 0;
     }
     // Manage step.
-    // todo: figure out why there's two conditions
-    // Reverse direction of sheep if needed.
-    int step_x = 0;
-    int step_y = 0;
-    if (position_ptr_->x <= frame_boundary ||  position_ptr_->x >= frame_width - frame_boundary) {
-        step_x = -velocity_x_ * 2;
-    }
-    if (position_ptr_->y <= frame_boundary || position_ptr_->y == frame_height - frame_boundary) {
-        step_y = -velocity_y_ * 2;
-    }
-
     // Update position.
-    step(step_x, step_y);
+    step(0, 0);
+
+    // Check collision.
+    if (position_ptr_->x <= frame_boundary ||
+        position_ptr_->x + position_ptr_->w >= frame_width - frame_boundary) {
+        velocity_x_ *= -1;
+        step(0, 0);
+    }
+    if (position_ptr_->y <= frame_boundary ||
+        position_ptr_->y + position_ptr_->h >= frame_height - frame_boundary) {
+        velocity_y_ *= -1;
+        step(0, 0);
+    }
     draw();
 }
 
 bool sheep::interact(interact_object *other_object) {
     // Boost speed if close to wolf.
-    if (other_object->has_property("hunter") &&
-        distance(position_ptr_, other_object->get_position()) == sheep_danger_distance ) {
+    int dist = distance(position_ptr_, other_object->get_position());
+    if (speed_timeout == 0 && other_object->has_property("hunter") &&
+        dist <= sheep_danger_distance ) {
         // Set timer for temporary speed boost and movement change.
-        std::cout << "Danger for sheep! \n";
 
         // Boost sheep speed.
-        if (velocity_x_) {
+        if (velocity_x_ != 0) {
             velocity_x_ *= -1;
             velocity_x_ += velocity_x_ > 0 ? velocity_boost : -velocity_boost;
         }
-        if (velocity_y_) {
+        if (velocity_y_ != 0) {
             velocity_y_ *= -1;
             velocity_y_ += velocity_y_ > 0 ? velocity_boost : -velocity_boost;
         }
@@ -53,7 +56,6 @@ bool sheep::interact(interact_object *other_object) {
     }
     else if (distance(position_ptr_, other_object->get_position()) == 0) {
         if (is_reproduction_time() && other_object->has_property("sheep") && has_different_sex(other_object)) {
-            // todo: reset time_before_reproduction timer.
             time_before_reproduction = SDL_GetTicks() + sheep_reproduction_delay;
             return true;
         }
@@ -64,30 +66,38 @@ bool sheep::interact(interact_object *other_object) {
 
 bool wolf::interact(interact_object *other_object) {
     if (other_object->has_property("shepherd_dog")) {
-        if (nearest_shepherd_dog_position == position_ptr_)
+        if (nearest_shepherd_dog_position == position_ptr_) {
             nearest_shepherd_dog_position = other_object->get_position();
+            std::cout << "Nearest shepherd dog found Case 1\n";
+        }
         else {
-            double object_distance = distance(this->position_ptr_, other_object->get_position());
-            if (object_distance < distance(this->position_ptr_, nearest_shepherd_dog_position))
+            double object_distance = distance(position_ptr_, other_object->get_position());
+            if (nearest_shepherd_dog_position != other_object->get_position() && object_distance < distance(position_ptr_, nearest_shepherd_dog_position)) {
                 nearest_shepherd_dog_position = other_object->get_position();
+                std::cout << "Nearest shepherd dog found\n";
+            }
         }
     }
     else if (other_object->has_property("prey")) {
-        if (nearest_prey_position == position_ptr_)
+        // In all cases, nearest sheep should not be too close to nearest dog.
+        if (nearest_prey_position == position_ptr_ && distance(nearest_prey_position, nearest_shepherd_dog_position) > wolf_danger_distance) {
+            std::cout << "Prey found\n";
             nearest_prey_position = other_object->get_position();
+        }
         else {
             double object_distance = distance(this->position_ptr_, other_object->get_position());
             // Kill sheep if too close else update nearest sheep position..
-            if (object_distance == 0.0) {
-                // todo: maybe increase kill distance
+            if (can_kill() && object_distance < kill_distance) {
                 // Reset wolf death time.
                 death_time = SDL_GetTicks() + death_delay;
                 other_object->mark_dead();
-            }
-            else if (object_distance < distance(this->position_ptr_, nearest_prey_position)) {
-                // Nearest sheep should not be too close to nearest dog.
-                if (distance(nearest_prey_position, nearest_shepherd_dog_position) > wolf_danger_distance)
-                    nearest_prey_position = other_object->get_position();
+                // Reset nearest prey position..
+                nearest_prey_position = position_ptr_;
+            } else if (object_distance < distance(this->position_ptr_, nearest_prey_position) && distance(other_object->get_position(), nearest_shepherd_dog_position) > wolf_danger_distance) {
+                nearest_prey_position = other_object->get_position();
+            } else if (distance(nearest_prey_position, nearest_shepherd_dog_position) <= wolf_danger_distance){
+                std::cout << "Current prey is too close to shepherd\n";
+                nearest_prey_position = position_ptr_;
             }
         }
     }
@@ -124,22 +134,45 @@ void wolf::move() {
         return;
     }
 
-    // Update velocity vector to follow nearest sheep.
-    velocity_x_ = nearest_prey_position->x - this->position_ptr_->x;
-    velocity_y_ = nearest_prey_position->y - this->position_ptr_->y;
-
-    // Reverse direction of wolf if needed.
-    // todo: maybe remove since clamp is used
+    // Follow nearest sheep.
     int step_x = 0;
     int step_y = 0;
-    if (position_ptr_->x == frame_boundary || position_ptr_->x == frame_width - frame_boundary) {
-        step_x = -velocity_x_ * 2;
-    }
-    if (position_ptr_->y == frame_boundary || position_ptr_->y == frame_height - frame_boundary) {
-        step_y = -velocity_y_ * 2;
+    double x_diff = nearest_prey_position->x - this->position_ptr_->x;
+    double y_diff = nearest_prey_position->y - this->position_ptr_->y;
+
+    // Case if sheep reached.
+    if (x_diff == 0 && y_diff == 0) {
+        // Do not move.
     }
 
+    if (abs(x_diff) > abs(y_diff)) {
+        if (x_diff > 0)
+            position_ptr_->x += wolf_velocity;
+        else
+            position_ptr_->x -= wolf_velocity;
+        velocity_y_ = 0;
+    } else {
+        if (y_diff > 0)
+            position_ptr_->y += wolf_velocity;
+        else
+            position_ptr_->y -= wolf_velocity;
+        velocity_x_ = 0;
+    }
+
+
     step(step_x, step_y);
+
+    // Check collision.
+    if (position_ptr_->x <= frame_boundary ||
+        position_ptr_->x + position_ptr_->w >= frame_width - frame_boundary) {
+        velocity_x_ *= -1;
+        step(0, 0);
+    }
+    if (position_ptr_->y <= frame_boundary ||
+        position_ptr_->y + position_ptr_->h >= frame_height - frame_boundary) {
+        velocity_y_ *= -1;
+        step(0, 0);
+    }
     draw();
 }
 
