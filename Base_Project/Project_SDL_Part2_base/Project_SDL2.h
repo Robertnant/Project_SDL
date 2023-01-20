@@ -58,10 +58,10 @@ constexpr unsigned delay_before_kill = 3000;
 constexpr unsigned wolf_danger_distance = 200;
 
 // Path to sheep and wolf texture
-const std::string sheep_texture_path = "../../media/sheep.png";
-const std::string wolf_texture_path = "../../media/wolf.png";
-const std::string shepherd_dog_texture_path = "../../media/shepherd_dog.png";
-const std::string shepherd_texture_path = "../../media/shepherd.png";
+const std::string sheep_texture_path = "../media/sheep.png";
+const std::string wolf_texture_path = "../media/wolf.png";
+const std::string shepherd_dog_texture_path = "../media/shepherd_dog.png";
+const std::string shepherd_texture_path = "../media/shepherd.png";
 
 // Helper function to initialize SDL
 void init();
@@ -304,6 +304,7 @@ public:
     virtual void move() override;
     virtual bool interact(interact_object *other_object) override;
     void fetch(int x, int y);
+    bool was_clicked(int x, int y);
 };
 
 // The "ground" on which all the objects live (like the std::vector

@@ -141,7 +141,6 @@ application::application(unsigned n_sheep, unsigned n_wolf) {
 application::~application() {
     delete ground_ptr_;
     // Close and destroy the surface and window.
-    // SDL_FreeSurface(window_surface_ptr_);
     SDL_DestroyWindow(window_ptr_);
 }
 
@@ -178,6 +177,12 @@ void ground::update(SDL_Window* window_ptr) {
 int application::loop(unsigned period) {
     Uint32 timeout = SDL_GetTicks() + period;
     while (!SDL_TICKS_PASSED(SDL_GetTicks(), timeout)) {
+        if(SDL_PollEvent(&this->window_event_)) {
+            switch (this->window_event_.type) {
+                case SDL_QUIT:
+                    return 0;
+            }
+        }
         ground_ptr_->update(window_ptr_);
     }
 

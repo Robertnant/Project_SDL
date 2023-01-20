@@ -134,16 +134,25 @@ void shepherd_dog::fetch(int x, int y) {
     ordered_position.y = y;
 }
 
+bool shepherd_dog::was_clicked(int x, int y) {
+    if (x >= position_ptr_->x && x <= position_ptr_->x + position_ptr_->w &&
+        y >= position_ptr_->y && y <= position_ptr_->y + position_ptr_->h) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 void shepherd_dog::move() {
     // Receive order if clicked.
     while(SDL_PollEvent(&this->window_event_)){
         switch(this->window_event_.type){
             case SDL_MOUSEBUTTONDOWN:
-                if (first_click_) {
+                if (first_click_ && was_clicked(window_event_.button.x, window_event_.button.y)) {
                     first_click_ = false;
                     std::cout << "Clicked\n";
                 }
-                else {
+                else if (first_click_ == false) {
                     std::cout << "Clicked 2\n";
                     fetch(this->window_event_.button.x, this->window_event_.button.y);
                     first_click_ = true;
@@ -164,9 +173,10 @@ void shepherd_dog::move() {
         double x_diff = ordered_position.x - this->position_ptr_->x;
         double y_diff = ordered_position.y - this->position_ptr_->y;
 
-        // Case if position reached.
-        if (x_diff == 0 && y_diff == 0) {
+        // Case if position reached (approximately).
+        if (x_diff >= 0 && x_diff <= 20 && y_diff >= 0 && y_diff <= 20) {
             has_order = false;
+            std::cout << "position reached\n";
         }
 
         if (abs(x_diff) > abs(y_diff)) {
@@ -235,61 +245,21 @@ void wolf::move() {
 }
 
 void playable_character::move() {
-    while(SDL_PollEvent(&window_event_)) {
-        switch(window_event_.type) {
-            case SDL_KEYDOWN:
-                switch(window_event_.key.keysym.sym){
-                    case SDLK_q:
-                    case SDLK_LEFT:
-                        velocity_x_ = -player_velocity;
-                        break;
-                    case SDLK_d:
-                    case SDLK_RIGHT:
-                        velocity_x_ = player_velocity;
-                        break;
-                    case SDLK_z:
-                    case SDLK_UP:
-                        velocity_y_ = -player_velocity;
-                        break;
-                    case SDLK_s:
-                    case SDLK_DOWN:
-                        velocity_y_ = player_velocity;
-                        break;
-                    default:
-                        break;
-                }
-                break;
-                // Zero velocities if necessary.
-            case SDL_KEYUP:
-                switch(window_event_.key.keysym.sym){
-                    case SDLK_q:
-                    case SDLK_LEFT:
-                        if(velocity_x_ < 0)
-                            velocity_x_ = 0;
-                        break;
-                    case SDLK_RIGHT:
-                    case SDLK_d:
-                        if(velocity_x_ > 0)
-                            velocity_x_ = 0;
-                        break;
-                    case SDLK_UP:
-                    case SDLK_z:
-                        if(velocity_y_ < 0)
-                            velocity_y_ = 0;
-                        break;
-                    case SDLK_DOWN:
-                    case SDLK_s:
-                        if(velocity_y_ > 0)
-                            velocity_y_ = 0;
-                        break;
-                    default:
-                        break;
-                }
-                break;
+    velocity_x_ = 0;
+    velocity_y_ = 0;
+    const Uint8 *key_state = SDL_GetKeyboardState(NULL);
 
-            default:
-                break;
-        }
+    if (key_state[SDL_GetScancodeFromKey(SDLK_UP)]) {
+        velocity_y_ -= player_velocity;
+    }
+    if (key_state[SDL_GetScancodeFromKey(SDLK_DOWN)]) {
+        velocity_y_ += player_velocity;
+    }
+    if (key_state[SDL_GetScancodeFromKey(SDLK_RIGHT)]) {
+        velocity_x_ += player_velocity;
+    }
+    if (key_state[SDL_GetScancodeFromKey(SDLK_LEFT)]) {
+        velocity_x_ -= player_velocity;
     }
     // Update player position.
     step(0, 0);
