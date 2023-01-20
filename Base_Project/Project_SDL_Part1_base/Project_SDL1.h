@@ -27,8 +27,8 @@ constexpr unsigned frame_boundary = 100;
 
 // Path to sheep and wolf texture
 // todo(robertnant): check if path should be absolute or relative
-const std::string sheep_texture_path = "../media/sheep.png";
-const std::string wolf_texture_path = "../media/wolf.png";
+const std::string sheep_texture_path = "../../media/sheep.png";
+const std::string wolf_texture_path = "../../media/wolf.png";
 
         // Helper function to initialize SDL
 void init();
