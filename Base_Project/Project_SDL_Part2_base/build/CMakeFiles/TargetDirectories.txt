@@ -1,3 +1,0 @@
-/home/robertnant/Desktop/APPING2/CPP/Project_SDL/Base_Project/Project_SDL_Part2_base/build/CMakeFiles/SDL_part2.dir
-/home/robertnant/Desktop/APPING2/CPP/Project_SDL/Base_Project/Project_SDL_Part2_base/build/CMakeFiles/edit_cache.dir
-/home/robertnant/Desktop/APPING2/CPP/Project_SDL/Base_Project/Project_SDL_Part2_base/build/CMakeFiles/rebuild_cache.dir
