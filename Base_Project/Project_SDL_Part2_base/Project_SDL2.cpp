@@ -63,7 +63,8 @@ SDL_Surface* load_surface_for(const std::string& path,
     SDL_Surface* converted_surface = SDL_ConvertSurface(image_surface, window_surface_ptr->format, 0);
     if(converted_surface == NULL)
     {
-        throw std::runtime_error("Unable to convert image" + path + "with Error: " + std::string(SDL_GetError()) + "\n");
+        throw std::runtime_error(
+                "Unable to convert image" + path + "with Error: " + std::string(SDL_GetError()) + "\n");
     }
 
     // Free temporary image surface.
@@ -75,7 +76,8 @@ SDL_Surface* load_surface_for(const std::string& path,
 } // namespace
 
 // Constructor for rendered object.
-rendered_object::rendered_object(const std::string &file_path, SDL_Surface* window_surface_ptr, int object_width, int object_height) {
+rendered_object::rendered_object(const std::string &file_path, SDL_Surface* window_surface_ptr,
+                                 int object_width, int object_height) {
     std::cout << file_path + "\n";
     image_ptr_ = load_surface_for(file_path, window_surface_ptr);
     window_surface_ptr_ = window_surface_ptr;
@@ -107,7 +109,7 @@ application::application(unsigned n_sheep, unsigned n_wolf) {
     window_surface_ptr_ = SDL_GetWindowSurface(window_ptr_);
 
     // todo: Use correct color.
-    SDL_FillRect(window_surface_ptr_, NULL, SDL_MapRGB(window_surface_ptr_->format, 255, 255, 255));
+    SDL_FillRect(window_surface_ptr_, NULL, SDL_MapRGB(window_surface_ptr_->format, 0, 255, 0));
 
     // Create ground with animals.
     ground_ptr_ = new ground(window_surface_ptr_);
@@ -117,7 +119,7 @@ application::application(unsigned n_sheep, unsigned n_wolf) {
     ground_ptr_->add_moving_object(new shepherd(window_surface_ptr_, window_event_));
 
     for (unsigned int i = 0; i < n_shepherd_dog; i++) {
-        ground_ptr_->add_moving_object(new shepherd_dog(window_surface_ptr_, seed_itr));
+        ground_ptr_->add_moving_object(new shepherd_dog(window_surface_ptr_, seed_itr, window_event_));
         seed_itr += 50;
     }
     for (unsigned int i = 0; i < n_sheep; i++) {
@@ -125,7 +127,7 @@ application::application(unsigned n_sheep, unsigned n_wolf) {
         seed_itr += 50;
     }
     for (unsigned int i = 0; i < n_wolf; i++) {
-        ground_ptr_->add_moving_object(new wolf(window_surface_ptr_, seed_itr));
+        ground_ptr_->add_moving_object(new wolf(window_surface_ptr_));
         seed_itr += 50;
     }
 
@@ -144,12 +146,7 @@ application::~application() {
 }
 
 void ground::update(SDL_Window* window_ptr) {
-    /**
-     * todo: if algo fails, start by just deleting all dead animals, then do interactions
-     * no object can interact with a dead object anyways
-     */
     for (unsigned int i = 0; i < moving_objects.size(); i++) {
-        // todo: Find better way to add object in random position.
         moving_objects[i]->move();
         for (unsigned int j = 0; j < moving_objects.size(); j++) {
             // A moving object should not interact with itself.
@@ -175,7 +172,7 @@ void ground::update(SDL_Window* window_ptr) {
     SDL_UpdateWindowSurface(window_ptr);
     SDL_Delay(1000 * frame_time);
     SDL_FillRect(window_surface_ptr_, NULL,
-                 SDL_MapRGB(window_surface_ptr_->format, 255, 255, 255));
+                 SDL_MapRGB(window_surface_ptr_->format, 0, 255, 0));
 }
 
 int application::loop(unsigned period) {
