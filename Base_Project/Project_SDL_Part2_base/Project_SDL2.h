@@ -12,6 +12,7 @@
 #include <optional>
 #include <vector>
 #include <set>
+#include <cmath>
 
 // Defintions
 constexpr double frame_rate = 60.0; // refresh rate
@@ -26,6 +27,7 @@ constexpr unsigned shepherd_dog_width = 50; // Width of shepherd dog in pixel
 constexpr unsigned shepherd_dog_height = 25; // Height of shepherd dog in pixel
 constexpr unsigned shepherd_width = 50; // Width of shepherd in pixel
 constexpr unsigned shepherd_height = 25; // Height of shepherd in pixel
+constexpr unsigned n_shepherd_dog = 5;
 
 // Minimal distance of animals to the border
 // of the screen
@@ -280,10 +282,13 @@ public:
 class shepherd_dog : public animal {
 private:
     SDL_Rect *shepherd_position_;
+    unsigned radius_;
+    unsigned seed_;
 public:
-    shepherd_dog(SDL_Surface* window_surface_ptr):animal(
+    shepherd_dog(SDL_Surface* window_surface_ptr, unsigned seed):animal(
             shepherd_dog_texture_path, window_surface_ptr,
             shepherd_dog_width, shepherd_dog_height){
+        seed_ = seed;
         // Set shepherd position this shepherd dog's position at first.
         shepherd_position_ = position_ptr_;
 

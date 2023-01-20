@@ -116,8 +116,9 @@ application::application(unsigned n_sheep, unsigned n_wolf) {
     // Initialize playable character.
     ground_ptr_->add_moving_object(new shepherd(window_surface_ptr_, window_event_));
 
-    for (unsigned int i = 0; i < 1; i++) {
-        ground_ptr_->add_moving_object(new shepherd_dog(window_surface_ptr_));
+    for (unsigned int i = 0; i < n_shepherd_dog; i++) {
+        ground_ptr_->add_moving_object(new shepherd_dog(window_surface_ptr_, seed_itr));
+        seed_itr += 50;
     }
     for (unsigned int i = 0; i < n_sheep; i++) {
         ground_ptr_->add_moving_object(new sheep(window_surface_ptr_, seed_itr));

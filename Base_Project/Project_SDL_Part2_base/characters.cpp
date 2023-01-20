@@ -110,18 +110,29 @@ bool shepherd::interact(interact_object *other_object) {
 }
 
 bool shepherd_dog::interact(interact_object *other_object) {
-    // Find shepherd.
-    if (shepherd_position_ == position_ptr_ && other_object->has_property("shepherd"))
+    // Find shepherd and stay next to them.
+    if (shepherd_position_ == position_ptr_ && other_object->has_property("shepherd")) {
         shepherd_position_ = other_object->get_position();
+        // todo: modify shepherd offset position.
+
+        srand(time(0) + seed_);
+        double angle = (double) rand() / RAND_MAX * 2 * M_PI;
+        double min_radius = 50;
+        double max_radius = 70;
+
+        // Radius is reused to update dog position.
+        radius_ = min_radius + (double) rand() / RAND_MAX * (max_radius);
+        position_ptr_->x = shepherd_position_->x + radius_ * cos(angle);
+        position_ptr_->y = shepherd_position_->y + radius_ * sin(angle);
+    }
     return false;
 }
 
 void shepherd_dog::move() {
     // Update velocity vector to follow shepherd.
-    velocity_x_ = shepherd_position_->x - this->position_ptr_->x + 30;
-    velocity_y_ = shepherd_position_->y - this->position_ptr_->y + 30;
-
-    // todo: Add reverse direction if needed. If not needed, then remove direction reverse for wolf
+    double new_angle = atan2(position_ptr_->y - shepherd_position_->y, position_ptr_->x - shepherd_position_->x);
+    position_ptr_->x = shepherd_position_->x + radius_ * cos(new_angle);
+    position_ptr_->y = shepherd_position_->y + radius_ * sin(new_angle);
     step(0, 0);
     draw();
 }
