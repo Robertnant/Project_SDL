@@ -310,8 +310,9 @@ private:
   // Attention, NON-OWNING ptr, again to the screen
   SDL_Surface* window_surface_ptr_;
 
-  // Some attribute to store all the moving objects
+  // Some attribute to store all the moving objects and keep track of dead or new preys.
   std::vector<moving_object*> moving_objects;
+  int extra_or_dead_prey_ = 0;
 public:
     ground(SDL_Surface* window_surface_ptr);
     ~ground();
@@ -319,6 +320,10 @@ public:
         moving_objects.push_back(moving_object);
     };
     void update(SDL_Window* window_ptr);
+    int get_prey_difference() {
+        // Gets extra or dead prey.
+        return extra_or_dead_prey_;
+    }
   // Possibly other methods, depends on your implementation
 };
 
@@ -334,6 +339,8 @@ private:
   ground* ground_ptr_;
   unsigned seed_itr = 0;
 
+  // Score attribute(s).
+  unsigned score_;
 public:
   application(unsigned n_sheep, unsigned n_wolf); // Ctor
     ~application();                                 // dtor

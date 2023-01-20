@@ -130,6 +130,9 @@ application::application(unsigned n_sheep, unsigned n_wolf) {
     }
 
     std::cout << "Added animals.\n";
+
+    // Set initial score.
+    score_ = n_sheep;
 }
 
 // Destructor for application.
@@ -154,13 +157,16 @@ void ground::update(SDL_Window* window_ptr) {
                 continue;
             if (moving_objects[i]->interact(moving_objects[j])) {
                 add_moving_object(new sheep(window_surface_ptr_, 0));
+                extra_or_dead_prey_++;
             };
 
             // Remove potential dead object.
             if (!moving_objects[i]->is_alive()) {
                 moving_objects.erase(moving_objects.begin() + i--);
+                extra_or_dead_prey_--;
                 break;  // dead object at index i no longer needs to interact with others
             } else if (!moving_objects[j]->is_alive()) {
+                extra_or_dead_prey_--;
                 moving_objects.erase(moving_objects.begin() + j--);
             }
         }
@@ -172,14 +178,15 @@ void ground::update(SDL_Window* window_ptr) {
                  SDL_MapRGB(window_surface_ptr_->format, 255, 255, 255));
 }
 
-// todo: finish
 int application::loop(unsigned period) {
-    // todo: check if this new version works
     Uint32 timeout = SDL_GetTicks() + period;
     while (!SDL_TICKS_PASSED(SDL_GetTicks(), timeout)) {
         ground_ptr_->update(window_ptr_);
     }
 
+    // Calculate and display score.
+    score_ += ground_ptr_->get_prey_difference();
+    std::cout << "Final score: " << score_ << "\n";
     return 0;
 }
 
